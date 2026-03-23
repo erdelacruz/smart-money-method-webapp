@@ -1,4 +1,4 @@
-# TradeAsX
+# Smart Money Method Australia
 
 Node.js + Express backend with JWT authentication and a Vite/React frontend.
 
