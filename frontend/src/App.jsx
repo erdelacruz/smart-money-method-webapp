@@ -14,9 +14,11 @@ import { AuthProvider } from './context/AuthContext'; // Global auth state wrapp
 import Navbar          from './components/Navbar';    // Navigation bar shown on every page
 import ProtectedRoute  from './components/ProtectedRoute'; // Guards admin routes
 
-import PublicPage from './pages/PublicPage'; // Accessible by everyone
-import LoginPage  from './pages/LoginPage';  // Login form for admins
-import AdminPage  from './pages/AdminPage';  // Only accessible when authenticated
+import PublicPage            from './pages/PublicPage';            // Accessible by everyone
+import LoginPage             from './pages/LoginPage';             // Login form for admins
+import AdminPage             from './pages/AdminPage';             // Only accessible when authenticated
+import TradingIndicatorPage  from './pages/TradingIndicatorPage';  // Trading indicators guide
+import ProfitLossPage        from './pages/ProfitLossPage';         // Profit/Loss calculator
 
 export default function App() {
   return (
@@ -47,6 +49,12 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Trading Indicators educational guide */}
+            <Route path="/indicators" element={<TradingIndicatorPage />} />
+
+            {/* Profit/Loss Calculator */}
+            <Route path="/calculator" element={<ProfitLossPage />} />
 
             {/* Catch-all: redirect any unknown URL back to the home page */}
             <Route path="*" element={<Navigate to="/" replace />} />

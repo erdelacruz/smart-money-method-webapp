@@ -93,10 +93,21 @@ body::before {
   line-height: 1;
 }
 
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .nav-links {
   display: flex;
   align-items: center;
   gap: .25rem;
+}
+
+.nav-links-left {
+  border-left: 1px solid var(--border2);
+  padding-left: .75rem;
 }
 
 .nav-links a {
@@ -111,6 +122,26 @@ body::before {
 .nav-links a:hover {
   color: var(--text);
   background: rgba(255,255,255,0.05);
+}
+
+.nav-user-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: var(--text2);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border2);
+  transition: color .2s, background .2s, border-color .2s;
+  padding: 0 !important;
+}
+
+.nav-user-icon:hover {
+  color: var(--primary) !important;
+  background: rgba(55,138,221,0.1) !important;
+  border-color: var(--primary) !important;
 }
 
 /* ── Buttons ─────────────────────────────────────────────── */
@@ -912,4 +943,679 @@ tbody td:first-child { text-align: left; }
   .site-footer { padding: 48px 32px 24px; }
   .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
   .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+
+  /* indicators responsive */
+  .indicator-header { grid-template-columns: 1fr; }
+  .indicator-info-grid { grid-template-columns: 1fr; }
+  .indicator-tabs { gap: 6px; }
+  .indicator-tab-label { display: none; }
+}
+
+/* ── Trading Indicator Page ──────────────────────────────── */
+
+.indicator-hero {
+  padding: 72px 2.5rem 48px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(55,138,221,0.06) 0%, transparent 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+.indicator-hero-inner { max-width: 640px; margin: 0 auto; }
+
+.indicator-hero-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin: 12px 0 16px;
+}
+
+.indicator-hero-sub {
+  font-size: 1.05rem;
+  color: var(--text2);
+  line-height: 1.65;
+}
+
+/* Tab bar */
+.indicator-tabs-wrap {
+  position: sticky;
+  top: 64px;
+  z-index: 50;
+  background: rgba(10,14,23,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2.5rem;
+}
+
+.indicator-tabs {
+  display: flex;
+  gap: 4px;
+  max-width: 960px;
+  margin: 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.indicator-tabs::-webkit-scrollbar { display: none; }
+
+.indicator-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: .88rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+}
+
+.indicator-tab:hover { color: var(--text); }
+
+.indicator-tab.active {
+  color: var(--tab-color, var(--primary));
+  border-bottom-color: var(--tab-color, var(--primary));
+}
+
+.indicator-tab-icon { font-size: 1rem; }
+
+/* Main content */
+.indicator-content {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 48px 2.5rem 80px;
+}
+
+/* Header grid: description + chart side by side */
+.indicator-header {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 40px;
+  align-items: start;
+  margin-bottom: 48px;
+}
+
+.indicator-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.indicator-title {
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.indicator-tagline {
+  font-size: 1rem;
+  color: var(--text2);
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.indicator-desc {
+  font-size: .9rem;
+  color: var(--text2);
+  line-height: 1.7;
+}
+
+/* Chart card */
+.indicator-chart-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.indicator-chart-label {
+  font-size: .78rem;
+  color: var(--text2);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+/* Info grid */
+.indicator-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.indicator-info-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.indicator-info-title {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.indicator-info-list { display: flex; flex-direction: column; gap: 16px; }
+
+.indicator-info-item-name {
+  font-size: .85rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.indicator-info-item-desc {
+  font-size: .82rem;
+  color: var(--text2);
+  line-height: 1.55;
+}
+
+/* Signal badge */
+.indicator-signal-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: .75rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+/* Parameter rows */
+.indicator-param-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.indicator-param-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.indicator-param-key {
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+}
+
+.indicator-param-val {
+  font-size: .84rem;
+  color: var(--text);
+}
+
+/* ============================================================
+   Profit / Loss Calculator Page  (.plc-*)
+   ============================================================ */
+
+/* Hero */
+.plc-hero {
+  background: linear-gradient(135deg, #0A0E17 0%, #0F1A2E 50%, #0A0E17 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 3.5rem 2rem 3rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.plc-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(55,138,221,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.plc-hero-inner { position: relative; max-width: 640px; margin: 0 auto; }
+.plc-hero-title {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: .75rem;
+  line-height: 1.15;
+}
+.plc-hero-sub {
+  font-size: 1.05rem;
+  color: var(--text2);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* Page wrapper */
+.plc-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Search row */
+.plc-search-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.plc-search-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.plc-search-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+.plc-search-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+  padding: .75rem 1rem .75rem 2.75rem;
+  letter-spacing: .05em;
+  font-weight: 600;
+  transition: border-color .2s;
+  outline: none;
+}
+.plc-search-input::placeholder { font-weight: 400; letter-spacing: 0; color: var(--muted); }
+.plc-search-input:focus { border-color: var(--primary); }
+.plc-search-badge {
+  position: absolute;
+  right: .75rem;
+  background: rgba(55,138,221,0.15);
+  color: var(--primary);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: .2rem .6rem;
+  border-radius: 4px;
+}
+.plc-reset-btn {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .7rem 1.1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  font-family: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: background .18s, color .18s, border-color .18s;
+  white-space: nowrap;
+}
+.plc-reset-btn:hover {
+  background: var(--bg4);
+  color: var(--text);
+  border-color: var(--border2);
+}
+
+/* Section wrapper */
+.plc-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+.plc-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-bottom: 1.25rem;
+}
+.plc-section-title {
+  font-size: .85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text2);
+}
+
+/* GST toggle */
+.plc-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  cursor: pointer;
+}
+.plc-toggle-label { font-size: .82rem; color: var(--text2); }
+.plc-toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  border: none;
+  background: var(--bg4);
+  cursor: pointer;
+  transition: background .2s;
+  padding: 0;
+  outline: none;
+}
+.plc-toggle--on { background: var(--primary); }
+.plc-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: white;
+  transition: transform .2s;
+}
+.plc-toggle--on .plc-toggle-thumb { transform: translateX(16px); }
+
+/* Broker card grid */
+.plc-broker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: .75rem;
+}
+.plc-broker-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .85rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  outline: none;
+}
+.plc-broker-card:hover {
+  background: var(--bg4);
+  border-color: var(--border2);
+}
+.plc-broker-card--active {
+  border-color: var(--broker-color, var(--primary));
+  background: color-mix(in srgb, var(--broker-color, var(--primary)) 8%, var(--bg3));
+  box-shadow: 0 0 0 1px var(--broker-color, var(--primary)) inset;
+}
+.plc-broker-name {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.plc-broker-desc {
+  font-size: .73rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Calculator panels */
+.plc-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+@media (max-width: 720px) {
+  .plc-panels { grid-template-columns: 1fr; }
+}
+
+.plc-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.plc-panel-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid transparent;
+}
+.plc-panel-badge {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .2rem .65rem;
+  border-radius: 4px;
+}
+.plc-panel-title {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Inputs */
+.plc-inputs {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.plc-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+.plc-label {
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: var(--text2);
+  text-transform: uppercase;
+}
+.plc-input {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  font-size: .95rem;
+  padding: .6rem .85rem;
+  outline: none;
+  width: 100%;
+  transition: border-color .2s;
+}
+.plc-input:focus { border-color: var(--primary); }
+.plc-input::placeholder { color: var(--muted); }
+.plc-input-prefix-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.plc-input-prefix {
+  position: absolute;
+  left: .85rem;
+  color: var(--muted);
+  font-size: .95rem;
+  pointer-events: none;
+}
+.plc-input--prefixed { padding-left: 1.8rem; }
+
+/* Breakdown rows */
+.plc-breakdown {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+}
+.plc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .45rem 0;
+}
+.plc-row--muted .plc-row-label,
+.plc-row--muted .plc-row-value {
+  font-size: .85rem;
+  color: var(--text2);
+}
+.plc-row--highlight {
+  margin-top: .25rem;
+}
+.plc-row--highlight .plc-row-label {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.plc-row--highlight .plc-row-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.plc-divider {
+  height: 1px;
+  background: var(--border);
+  margin: .4rem 0;
+}
+
+/* P&L Summary */
+.plc-summary {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+.plc-summary--empty { opacity: .6; }
+.plc-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: 1.5rem;
+}
+.plc-summary-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.plc-summary-code {
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+.plc-summary-hint {
+  font-size: .8rem;
+  color: var(--muted);
+  font-style: italic;
+}
+.plc-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+/* Stat cards */
+.plc-stat-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+.plc-stat-card--result {
+  border-color: var(--border2);
+}
+.plc-stat-card--profit { border-color: rgba(0,200,150,0.35); background: rgba(0,200,150,0.05); }
+.plc-stat-card--loss   { border-color: rgba(240,78,78,0.35);  background: rgba(240,78,78,0.05);  }
+
+.plc-stat-label {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--muted);
+}
+.plc-stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.plc-stat-value--large { font-size: 1.7rem; }
+.plc-stat-value--blue  { color: var(--primary); }
+.plc-stat-value--green { color: var(--success); }
+.plc-stat-value--gold  { color: var(--gold); }
+.plc-stat-value--profit { color: var(--success); }
+.plc-stat-value--loss   { color: var(--danger); }
+.plc-stat-sub {
+  font-size: .75rem;
+  color: var(--text2);
+  line-height: 1.4;
+}
+
+/* Gross vs net note */
+.plc-breakdown-note {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: .83rem;
+  color: var(--text2);
+}
+.plc-breakdown-note-item { display: flex; align-items: center; gap: .35rem; }
+.plc-breakdown-note-sep  { color: var(--muted); }
+.plc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Fee reference table */
+.plc-ref-section { padding: 1.5rem; }
+.plc-ref-table-wrap { overflow-x: auto; margin-bottom: 1rem; }
+.plc-ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .83rem;
+}
+.plc-ref-table th {
+  padding: .55rem .9rem;
+  text-align: left;
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.plc-ref-table td {
+  padding: .65rem .9rem;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.plc-ref-table tr:last-child td { border-bottom: none; }
+.plc-ref-table tr:hover td { background: var(--bg3); }
+.plc-ref-broker { font-weight: 700; }
+.plc-ref-note {
+  font-size: .77rem;
+  color: var(--muted);
+  line-height: 1.6;
 }
