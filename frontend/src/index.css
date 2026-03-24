@@ -1056,7 +1056,7 @@ body::before {
 }
 .comp-header {
   width: 100%;
-  padding: 56px 32px 32px;
+  padding: 28px 32px 16px;
   text-align: center;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
@@ -1387,7 +1387,7 @@ body::before {
 }
 .budget-header {
   width: 100%;
-  padding: 56px 32px 32px;
+  padding: 28px 32px 16px;
   text-align: center;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
@@ -1853,7 +1853,7 @@ body::before {
 }
 .pay-header {
   width: 100%;
-  padding: 56px 32px 32px;
+  padding: 28px 32px 16px;
   text-align: center;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
@@ -2289,7 +2289,7 @@ body::before {
 }
 .admin-hero {
   width: 100%;
-  padding: 56px 32px 32px;
+  padding: 28px 32px 16px;
   text-align: center;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
@@ -2504,7 +2504,7 @@ body::before {
 /* ── Trading Indicator Page ──────────────────────────────── */
 
 .indicator-hero {
-  padding: 56px 32px 32px;
+  padding: 28px 32px 16px;
   text-align: center;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
@@ -2585,6 +2585,100 @@ body::before {
   max-width: 1060px;
   margin: 0 auto;
   padding: 48px 2.5rem 80px;
+}
+
+/* TradingView live chart widget */
+.tv-widget-wrap {
+  margin-top: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.tv-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tv-widget-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tv-widget-label {
+  font-size: .92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.tv-widget-sub {
+  font-size: .78rem;
+  color: var(--text2);
+}
+.tv-symbol-input-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.tv-symbol-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tv-symbol-input-row {
+  display: flex;
+  align-items: center;
+}
+.tv-symbol-prefix {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text2);
+  white-space: nowrap;
+}
+.tv-symbol-input {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 0 6px 6px 0;
+  background: var(--bg);
+  color: var(--text);
+  font-size: .85rem;
+  width: 130px;
+  outline: none;
+  transition: border-color .15s;
+}
+.tv-symbol-input:focus { border-color: #378ADD; }
+.tv-symbol-input--error { border-color: #ef4444 !important; }
+.tv-symbol-error { font-size: .75rem; color: #ef4444; }
+.tv-symbol-btn {
+  height: 34px;
+  padding: 0 16px;
+  background: #378ADD;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+.tv-symbol-btn:hover {
+  background: #185FA5;
+}
+.tv-widget-container {
+  width: 100%;
+  height: 500px;
 }
 
 /* Header grid: description + chart side by side */
@@ -2719,9 +2813,157 @@ body::before {
    Profit / Loss Calculator Page  (.plc-*)
    ============================================================ */
 
+/* ============================================================
+   ASX Price Chart Page
+   ============================================================ */
+.asx-chart-page { min-height: 100vh; }
+
+.asx-chart-hero {
+  padding: 28px 32px 12px;
+  text-align: center;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.asx-chart-hero-inner { max-width: 640px; margin: 0 auto; }
+.asx-chart-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(20px, 2.8vw, 31px);
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin: 8px auto 12px;
+  text-align: center;
+  line-height: 1.15;
+}
+.asx-chart-sub {
+  font-size: 15px;
+  color: var(--text2);
+  line-height: 1.6;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.asx-chart-body {
+  width: 90%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.5rem 0 4rem;
+}
+
+.asx-chart-search-wrap {
+  margin-bottom: 12px;
+}
+.asx-chart-search-label {
+  font-size: .8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text2);
+  white-space: nowrap;
+}
+.asx-chart-search-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.asx-chart-search-row .asx-chart-search-label {
+  padding-top: 10px;
+}
+.asx-chart-search-row .tv-symbol-btn--lg {
+  margin-top: 0;
+  flex-shrink: 0;
+}
+.asx-chart-hint {
+  margin-top: 8px;
+  font-size: .8rem;
+  color: var(--text2);
+  line-height: 1.5;
+}
+.asx-chart-hint kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: .75rem;
+  background: var(--card);
+  color: var(--text);
+}
+.asx-chart-hint code {
+  font-size: .8rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--text);
+}
+
+/* Larger input variant for the dedicated chart page */
+.tv-symbol-input--lg {
+  height: 40px;
+  font-size: .95rem;
+  width: 160px;
+}
+.tv-symbol-input--lg + .tv-symbol-prefix,
+.tv-symbol-input-row:has(.tv-symbol-input--lg) .tv-symbol-prefix {
+  height: 40px;
+  font-size: .9rem;
+}
+.tv-symbol-btn--lg {
+  height: 40px;
+  padding: 0 22px;
+  font-size: .9rem;
+}
+
+/* Full-height chart container */
+.tv-widget-container--full {
+  height: 620px;
+}
+
+/* ============================================================
+   Screener Page
+   ============================================================ */
+.screener-page { min-height: 100vh; }
+
+.screener-hero {
+  padding: 28px 32px 16px;
+  text-align: center;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.screener-hero-inner { max-width: 640px; margin: 0 auto; }
+.screener-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(20px, 2.8vw, 31px);
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin: 8px auto 12px;
+  text-align: center;
+  line-height: 1.15;
+}
+.screener-sub {
+  font-size: 15px;
+  color: var(--text2);
+  line-height: 1.6;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.screener-body {
+  width: 90%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 4rem;
+}
+
+.screener-widget-container {
+  height: 700px;
+}
+
+/* ============================================================ */
+
 /* Hero */
 .plc-hero {
-  padding: 56px 32px 32px;
+  padding: 28px 32px 16px;
   text-align: center;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
@@ -3183,7 +3425,7 @@ body::before {
 }
 
 .dca-header {
-  padding: 3.5rem 2rem 2.5rem;
+  padding: 1.75rem 2rem 1.25rem;
   text-align: center;
   border-bottom: 1px solid var(--border);
   background: var(--bg);

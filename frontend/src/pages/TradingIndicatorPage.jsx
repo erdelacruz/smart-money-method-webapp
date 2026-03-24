@@ -518,6 +518,7 @@ export default function TradingIndicatorPage() {
           </div>
 
         </div>
+
       </div>
     </div>
   );

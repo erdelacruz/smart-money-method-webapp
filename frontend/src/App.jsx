@@ -25,6 +25,8 @@ import PayCalculatorPage          from './pages/PayCalculatorPage';           //
 import CompoundingCalculatorPage  from './pages/CompoundingCalculatorPage';  // Money Compounding Calculator
 import BudgetToolPage            from './pages/BudgetToolPage';              // Budget Planner
 import DCACalculatorPage         from './pages/DCACalculatorPage';           // Dollar Cost Averaging Calculator
+import ASXPriceChartPage        from './pages/ASXPriceChartPage';            // Live ASX Price Chart
+import ScreenerPage             from './pages/ScreenerPage';                  // ASX Stock Screener
 
 export default function App() {
   return (
@@ -56,6 +58,8 @@ export default function App() {
             <Route path="/compounding-calculator" element={<CompoundingCalculatorPage />} />
             <Route path="/budget"                 element={<BudgetToolPage />} />
             <Route path="/dca-calculator"         element={<DCACalculatorPage />} />
+            <Route path="/asx-chart"              element={<ASXPriceChartPage />} />
+            <Route path="/screener"               element={<ScreenerPage />} />
             <Route path="*"                       element={<Navigate to="/" replace />} />
           </Routes>
         </main>
