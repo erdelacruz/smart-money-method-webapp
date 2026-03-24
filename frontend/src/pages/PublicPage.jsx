@@ -220,6 +220,7 @@ export default function PublicPage() {
             { icon:'💵', title:'Pay Calculator',           href:'/pay-calculator',         desc:'Work out your take-home pay after tax, Medicare levy and super contributions. Supports weekly, fortnightly and monthly pay cycles.' },
             { icon:'📋', title:'Budget Planner',           href:'/budget',                 desc:'Plan your monthly budget by tracking income and expenses across categories. Visualise where your money goes and find opportunities to save.' },
             { icon:'📊', title:'Compounding Calculator',   href:'/compounding-calculator', desc:'See the power of compound interest over time. Enter a starting amount, regular contributions, interest rate and time horizon to project your wealth.' },
+            { icon:'📉', title:'DCA Calculator',           href:'/dca-calculator',         desc:'Simulate dollar cost averaging for any ASX stock. Enter regular contributions and see how your portfolio would have grown over time.' },
           ].map(tool => (
             <div key={tool.title} className="tool-card">
               <div className="tool-icon">{tool.icon}</div>

@@ -17,6 +17,7 @@ import cors    from 'cors';
 // CommonJS (require) resolved extensions automatically; ES modules do not.
 import authRoutes  from './routes/auth.js';   // POST /api/auth/login, GET /api/auth/me
 import statsRoutes from './routes/stats.js';  // POST /api/stats/visit, GET /api/stats/visitors
+import asxRoutes   from './routes/asx.js';    // GET /api/asx/search, GET /api/asx/prices
 
 // Create an Express application instance — this is our server object
 const app  = express();
@@ -44,6 +45,9 @@ app.use('/api/auth', authRoutes);
 
 // Visitor stats routes: record visits, fetch counts for admin
 app.use('/api/stats', statsRoutes);
+
+// ASX data routes: autocomplete search + historical prices (proxy to TipRanks)
+app.use('/api/asx', asxRoutes);
 
 // ---------------------------------------------------------------------------
 // START SERVER

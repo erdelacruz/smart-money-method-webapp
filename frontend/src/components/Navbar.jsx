@@ -83,6 +83,13 @@ export default function Navbar() {
                     <div className="nav-dropdown-sub">Calculate your trading profit & loss</div>
                   </div>
                 </Link>
+                <Link to="/dca-calculator" className="nav-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                  <span className="nav-dropdown-icon">📉</span>
+                  <div>
+                    <div className="nav-dropdown-label">Dollar Cost Averaging</div>
+                    <div className="nav-dropdown-sub">Simulate DCA vs lump-sum investing</div>
+                  </div>
+                </Link>
               </div>
             )}
           </div>

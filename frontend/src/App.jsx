@@ -23,6 +23,7 @@ import ProfitLossPage        from './pages/ProfitLossPage';         // Profit/Lo
 import PayCalculatorPage          from './pages/PayCalculatorPage';           // Australian Pay Calculator
 import CompoundingCalculatorPage  from './pages/CompoundingCalculatorPage';  // Money Compounding Calculator
 import BudgetToolPage            from './pages/BudgetToolPage';              // Budget Planner
+import DCACalculatorPage         from './pages/DCACalculatorPage';           // Dollar Cost Averaging Calculator
 
 export default function App() {
   return (
@@ -69,6 +70,9 @@ export default function App() {
 
             {/* Budget Planner */}
             <Route path="/budget" element={<BudgetToolPage />} />
+
+            {/* Dollar Cost Averaging Calculator */}
+            <Route path="/dca-calculator" element={<DCACalculatorPage />} />
 
             {/* Catch-all: redirect any unknown URL back to the home page */}
             <Route path="*" element={<Navigate to="/" replace />} />
