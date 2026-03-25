@@ -226,6 +226,7 @@ export default function PublicPage() {
             { icon:'📊', title:'Compounding Calculator',   href:'/compounding-calculator', desc:'See the power of compound interest over time. Enter a starting amount, regular contributions, interest rate and time horizon to project your wealth.' },
             { icon:'📉', title:'DCA Calculator',           href:'/dca-calculator',         desc:'Simulate dollar cost averaging for any ASX stock. Enter regular contributions and see how your portfolio would have grown over time.' },
             { icon:'📊', title:'Chart & Screener',        href:'/charts',                 desc:'Live price charts and stock screener for ASX shares and Australian ETFs. Search any symbol and filter by market cap, price, and volume.' },
+            { icon:'🕯️', title:'Trading Simulator',       href:'/trading-grounds',        desc:'Practice BUY & SELL on a live candlestick simulator with no real money. Add indicators, draw trend lines, and track your paper trading P&L.' },
           ].map(tool => (
             <div key={tool.title} className="tool-card">
               <div className="tool-icon">{tool.icon}</div>

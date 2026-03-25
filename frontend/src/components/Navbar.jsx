@@ -15,7 +15,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const { theme, toggle: toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const [openMenu, setOpenMenu] = useState(null); // 'investing' | 'trading' | null
+  const [openMenu, setOpenMenu] = useState(null); // 'investing' | 'trading' | 'personal' | null
   const closeTimer = useRef(null);
 
   const openDropdown  = (name) => { clearTimeout(closeTimer.current); setOpenMenu(name); };
@@ -114,9 +114,45 @@ export default function Navbar() {
           </div>
 
           <Link to="/charts">Chart &amp; Screener</Link>
-          <Link to="/pay-calculator">Pay Calculator</Link>
-          <Link to="/compounding-calculator">Compounding Calculator</Link>
-          <Link to="/budget">Budget Planner</Link>
+
+          {/* Personal Finance dropdown */}
+          <div
+            className={`nav-dropdown${openMenu === 'personal' ? ' open' : ''}`}
+            onMouseEnter={() => openDropdown('personal')}
+            onMouseLeave={closeDropdown}
+          >
+            <button className="nav-dropdown-trigger">
+              Personal Finance
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{marginLeft:4}}>
+                <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            {openMenu === 'personal' && (
+              <div className="nav-dropdown-menu" onMouseEnter={() => openDropdown('personal')} onMouseLeave={closeDropdown}>
+                <Link to="/pay-calculator" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>
+                  <span className="nav-dropdown-icon">💵</span>
+                  <div>
+                    <div className="nav-dropdown-label">Pay Calculator</div>
+                    <div className="nav-dropdown-sub">Work out your take-home pay after tax, Medicare levy and super</div>
+                  </div>
+                </Link>
+                <Link to="/compounding-calculator" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>
+                  <span className="nav-dropdown-icon">📊</span>
+                  <div>
+                    <div className="nav-dropdown-label">Compounding Calculator</div>
+                    <div className="nav-dropdown-sub">See the power of compound interest over time</div>
+                  </div>
+                </Link>
+                <Link to="/budget" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>
+                  <span className="nav-dropdown-icon">📋</span>
+                  <div>
+                    <div className="nav-dropdown-label">Budget Planner</div>
+                    <div className="nav-dropdown-sub">Track income and expenses across categories</div>
+                  </div>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

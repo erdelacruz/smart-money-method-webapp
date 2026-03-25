@@ -2,18 +2,18 @@
 // pages/TradingGroundsPage.jsx — Paper trading simulator
 //
 // Chart engine : TradingView Lightweight Charts (CDN)
-// Indicators   : EMA 20/50/200, Bollinger Bands, Auto Darvas,
-//                RSI (14), MACD (12,26,9), Fibonacci Retracement
+// Indicators   : SMA 20/50/200, Bollinger Bands, Auto Darvas, VWAP,
+//                RSI (14), MACD (12,26,9), ATR (14), Fibonacci Retracement
 // Drawing tools: Manual Darvas Box (canvas overlay), Fibonacci
 // Layout       : full-width chart left + trading panel right
 // ============================================================
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const HISTORY    = 350;
-const TICK_S     = 2;
+const TICK_S     = 86400; // 1 day per candle
 const START      = 148.50;
 const SCRIPT_ID  = 'lw-charts-cdn';
 const SCRIPT_SRC = 'https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js';
@@ -67,10 +67,13 @@ function nextCandle(prev) {
 }
 
 // ── Indicator math ────────────────────────────────────────────────────────────
-function calcEMA(candles, period) {
-  const k = 2 / (period + 1);
-  let e = candles[0].close;
-  return candles.map(c => { e = c.close * k + e * (1 - k); return { time: c.time, value: e }; });
+function calcSMA(candles, period) {
+  const result = [];
+  for (let i = period - 1; i < candles.length; i++) {
+    const sum = candles.slice(i - period + 1, i + 1).reduce((s, c) => s + c.close, 0);
+    result.push({ time: candles[i].time, value: sum / period });
+  }
+  return result;
 }
 
 function calcBB(candles, period = 20) {
@@ -138,32 +141,69 @@ function calcDarvas(candles, n = 4) {
   return boxes;
 }
 
+function calcVWAP(candles) {
+  let cumVol = 0, cumPV = 0;
+  return candles.map(c => {
+    const tp = (c.high + c.low + c.close) / 3;
+    cumVol += c.volume; cumPV += tp * c.volume;
+    return { time: c.time, value: cumPV / cumVol };
+  });
+}
+
+function calcATR(candles, period = 14) {
+  if (candles.length < 2) return [];
+  const trs = candles.map((c, i) => i === 0
+    ? c.high - c.low
+    : Math.max(c.high - c.low, Math.abs(c.high - candles[i-1].close), Math.abs(c.low - candles[i-1].close))
+  );
+  const result = [];
+  for (let i = period - 1; i < trs.length; i++) {
+    result.push({ time: candles[i].time, value: trs.slice(i - period + 1, i + 1).reduce((s, v) => s + v, 0) / period });
+  }
+  return result;
+}
+
+// ── Indicator catalogue (for search dropdown) ─────────────────────────────────
+const INDICATOR_CATALOG = [
+  { key: 'sma20',  label: 'SMA 20',          group: 'Moving Average', dot: '#5B9CF6', desc: 'Simple Moving Average (20-period)' },
+  { key: 'sma50',  label: 'SMA 50',          group: 'Moving Average', dot: '#F0A500', desc: 'Simple Moving Average (50-period)' },
+  { key: 'sma200', label: 'SMA 200',         group: 'Moving Average', dot: '#A855F7', desc: 'Simple Moving Average (200-period)' },
+  { key: 'bb',     label: 'Bollinger Bands', group: 'Overlay',        dot: '#8A9BB0', desc: 'Bollinger Bands (20, ±2σ)' },
+  { key: 'darvas', label: 'Auto Darvas',     group: 'Overlay',        dot: '#D4A017', desc: 'Darvas Box auto-detection' },
+  { key: 'vwap',   label: 'VWAP',           group: 'Overlay',        dot: '#F04E4E', desc: 'Volume Weighted Average Price' },
+  { key: 'rsi',    label: 'RSI (14)',        group: 'Sub-Chart',      dot: '#00C896', desc: 'Relative Strength Index, 14-period' },
+  { key: 'macd',   label: 'MACD (12,26,9)', group: 'Sub-Chart',      dot: '#5B9CF6', desc: 'MACD — 12/26 EMAs, 9-period signal' },
+  { key: 'atr',    label: 'ATR (14)',        group: 'Sub-Chart',      dot: '#D4A017', desc: 'Average True Range, 14-period' },
+];
+
 // ── Chart component ───────────────────────────────────────────────────────────
 function TradingChart({
   candles, position, enabled,
-  fibState, manualBoxes, boxDrawState,
+  fibState, manualBoxes, boxDrawState, hLines,
   onChartClick, theme, lwReady,
 }) {
   const mainRef  = useRef(null);
   const rsiRef   = useRef(null);
   const macdRef  = useRef(null);
-  const canvasRef= useRef(null);   // canvas overlay for manual Darvas boxes
+  const atrRef   = useRef(null);
+  const canvasRef= useRef(null);
   const chartRef = useRef(null);
   const rsiCRef  = useRef(null);
   const macdCRef = useRef(null);
+  const atrCRef  = useRef(null);
   const S        = useRef({});
-  const fibLines = useRef([]);
-  const entryLine= useRef(null);
+  const fibLines  = useRef([]);
+  const hLineRefs = useRef([]);
+  const entryLine = useRef(null);
 
-  // Always-current refs (avoid stale closures in subscriptions)
-  const onClickRef   = useRef(onChartClick);
-  const boxesRef     = useRef(manualBoxes);
-  const boxDrawRef   = useRef(boxDrawState);
-  const hoverRef     = useRef(null);
+  const onClickRef  = useRef(onChartClick);
+  const boxesRef    = useRef(manualBoxes);
+  const boxDrawRef  = useRef(boxDrawState);
+  const hoverRef    = useRef(null);
 
-  useEffect(() => { onClickRef.current  = onChartClick; },  [onChartClick]);
-  useEffect(() => { boxesRef.current    = manualBoxes;  scheduleDraw(); }, [manualBoxes]);    // eslint-disable-line
-  useEffect(() => { boxDrawRef.current  = boxDrawState; scheduleDraw(); }, [boxDrawState]);   // eslint-disable-line
+  useEffect(() => { onClickRef.current = onChartClick; }, [onChartClick]);
+  useEffect(() => { boxesRef.current   = manualBoxes;  scheduleDraw(); }, [manualBoxes]);   // eslint-disable-line
+  useEffect(() => { boxDrawRef.current = boxDrawState; scheduleDraw(); }, [boxDrawState]);  // eslint-disable-line
 
   const isDark = theme === 'dark';
 
@@ -173,7 +213,7 @@ function TradingChart({
                horzLines: { color: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)' } },
   }), []);
 
-  // ── Canvas redraw (reads from refs — always fresh) ───────────────────────
+  // ── Canvas redraw ─────────────────────────────────────────────────────────
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     const chart  = chartRef.current;
@@ -202,7 +242,6 @@ function TradingChart({
       ctx.lineWidth   = 1.5;
       ctx.setLineDash([5, 3]);
       ctx.strokeRect(rx, ry, rw, rh);
-      // Label
       ctx.setLineDash([]);
       ctx.fillStyle = '#D4A017';
       ctx.font      = 'bold 10px sans-serif';
@@ -210,36 +249,33 @@ function TradingChart({
       ctx.restore();
     };
 
-    // Draw completed manual boxes
     for (const box of boxesRef.current) {
       drawBox(toXY(box.startTime, box.top), toXY(box.endTime, box.bottom));
     }
 
-    // Draw in-progress preview (p1 set, waiting for p2)
     const ds    = boxDrawRef.current;
     const hover = hoverRef.current;
     if (ds.active && ds.p1 && hover) {
       drawBox(toXY(ds.p1.time, ds.p1.price), toXY(hover.time, hover.price), 0.45);
     }
-  }, []); // stable — only reads refs
+  }, []);
 
   const scheduleDraw = useCallback(() => { requestAnimationFrame(redrawCanvas); }, [redrawCanvas]);
 
-  // ── Init all three charts once script is ready ───────────────────────────
+  // ── Init charts ───────────────────────────────────────────────────────────
   useEffect(() => {
     const LW = window.LightweightCharts;
-    if (!LW || !mainRef.current || !rsiRef.current || !macdRef.current) return;
+    if (!LW || !mainRef.current || !rsiRef.current || !macdRef.current || !atrRef.current) return;
 
     const base = (h) => ({
       ...chartTheme(isDark),
       width: 0, height: h,
       rightPriceScale: { borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)' },
-      timeScale:        { borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)', timeVisible: true, secondsVisible: true },
+      timeScale: { borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)', timeVisible: true, secondsVisible: false, rightOffset: 20 },
       crosshair: { mode: 1 },
       handleScroll: true, handleScale: true,
     });
 
-    // Main chart
     const chart = LW.createChart(mainRef.current, base(440));
     chartRef.current = chart;
 
@@ -251,14 +287,12 @@ function TradingChart({
     S.current.volume = chart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceScaleId: 'vol' });
     chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
 
-    // Unified click handler (fib + darvas box drawing)
     chart.subscribeClick((param) => {
       if (!param.point || !param.time) return;
       const price = S.current.candles.coordinateToPrice(param.point.y);
       if (price != null) onClickRef.current?.({ price, time: param.time });
     });
 
-    // Crosshair move → update hover for box preview
     chart.subscribeCrosshairMove((param) => {
       if (param.time && param.point) {
         const price = S.current.candles?.coordinateToPrice(param.point.y);
@@ -269,15 +303,14 @@ function TradingChart({
       if (boxDrawRef.current?.active) requestAnimationFrame(redrawCanvas);
     });
 
-    // Redraw canvas on chart pan/zoom
     chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
       requestAnimationFrame(redrawCanvas);
     });
 
-    // RSI chart
+    // RSI
     const rsiChart = LW.createChart(rsiRef.current, {
       ...base(90),
-      timeScale: { visible: false },
+      timeScale: { visible: false, rightOffset: 20 },
       rightPriceScale: { scaleMargins: { top: 0.1, bottom: 0.1 }, borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)' },
     });
     rsiCRef.current = rsiChart;
@@ -286,10 +319,10 @@ function TradingChart({
     S.current.rsiLine.createPriceLine({ price: 30, color: '#00C896', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: 'OS' });
     S.current.rsiLine.createPriceLine({ price: 50, color: '#4A5570', lineWidth: 1, lineStyle: 3, axisLabelVisible: false });
 
-    // MACD chart
+    // MACD
     const macdChart = LW.createChart(macdRef.current, {
       ...base(90),
-      timeScale: { visible: false },
+      timeScale: { visible: false, rightOffset: 20 },
       rightPriceScale: { scaleMargins: { top: 0.1, bottom: 0.1 }, borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)' },
     });
     macdCRef.current = macdChart;
@@ -297,14 +330,24 @@ function TradingChart({
     S.current.macdLine = macdChart.addLineSeries({ color: '#5B9CF6', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true });
     S.current.macdSig  = macdChart.addLineSeries({ color: '#F0A500', lineWidth: 1.2, priceLineVisible: false, lastValueVisible: false });
 
-    // Sync sub-chart time scales
+    // ATR
+    const atrChart = LW.createChart(atrRef.current, {
+      ...base(90),
+      timeScale: { visible: false, rightOffset: 20 },
+      rightPriceScale: { scaleMargins: { top: 0.1, bottom: 0.1 }, borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)' },
+    });
+    atrCRef.current = atrChart;
+    S.current.atrLine = atrChart.addLineSeries({ color: '#D4A017', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: true });
+
+    // Sync time scales
     chart.timeScale().subscribeVisibleLogicalRangeChange(range => {
       if (!range) return;
       rsiChart.timeScale().setVisibleLogicalRange(range);
       macdChart.timeScale().setVisibleLogicalRange(range);
+      atrChart.timeScale().setVisibleLogicalRange(range);
     });
 
-    // ResizeObserver — also resize canvas
+    // ResizeObserver
     const ro = new ResizeObserver(() => {
       const w = mainRef.current?.clientWidth;
       const h = mainRef.current?.clientHeight || 440;
@@ -312,6 +355,7 @@ function TradingChart({
       chart.applyOptions({ width: w });
       rsiChart.applyOptions({ width: w });
       macdChart.applyOptions({ width: w });
+      atrChart.applyOptions({ width: w });
       if (canvasRef.current) {
         canvasRef.current.width  = w;
         canvasRef.current.height = h;
@@ -327,28 +371,31 @@ function TradingChart({
         chart.applyOptions({ width: w });
         rsiChart.applyOptions({ width: w });
         macdChart.applyOptions({ width: w });
+        atrChart.applyOptions({ width: w });
         if (canvasRef.current) { canvasRef.current.width = w; canvasRef.current.height = h; }
       }
     });
 
     return () => {
       ro.disconnect();
-      chart.remove();    chartRef.current = null;
-      rsiChart.remove(); rsiCRef.current  = null;
+      chart.remove();     chartRef.current = null;
+      rsiChart.remove();  rsiCRef.current  = null;
       macdChart.remove(); macdCRef.current = null;
+      atrChart.remove();  atrCRef.current  = null;
       S.current = {};
     };
   }, [lwReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Sync theme ───────────────────────────────────────────────────────────
+  // ── Sync theme ────────────────────────────────────────────────────────────
   useEffect(() => {
     const t = chartTheme(isDark);
     chartRef.current?.applyOptions(t);
     rsiCRef.current?.applyOptions(t);
     macdCRef.current?.applyOptions(t);
+    atrCRef.current?.applyOptions(t);
   }, [isDark, chartTheme]);
 
-  // ── Feed candle data + indicator overlays ────────────────────────────────
+  // ── Feed candle data + indicators ─────────────────────────────────────────
   useEffect(() => {
     const s = S.current;
     if (!s.candles) return;
@@ -366,9 +413,10 @@ function TradingChart({
       } else if (s[key]) { chartRef.current?.removeSeries(s[key]); s[key] = null; }
     };
 
-    setLine('ema20',  calcEMA(candles, 20),  '#5B9CF6');
-    setLine('ema50',  calcEMA(candles, 50),  '#F0A500');
-    setLine('ema200', calcEMA(candles, 200), '#A855F7');
+    setLine('sma20',  calcSMA(candles, 20),  '#5B9CF6');
+    setLine('sma50',  calcSMA(candles, 50),  '#F0A500');
+    setLine('sma200', calcSMA(candles, 200), '#A855F7');
+    setLine('vwap',   calcVWAP(candles),     '#F04E4E');
 
     if (enabled.bb) {
       const bb = calcBB(candles);
@@ -383,7 +431,6 @@ function TradingChart({
       ['bbU','bbM','bbL'].forEach(k => { if (s[k]) { chartRef.current?.removeSeries(s[k]); s[k] = null; } });
     }
 
-    // Auto Darvas — price lines for most recent detected box
     if (enabled.darvas) {
       const boxes = calcDarvas(candles);
       if (boxes.length) {
@@ -404,12 +451,13 @@ function TradingChart({
     s.rsiLine?.setData(calcRSI(candles));
     const m = calcMACD(candles);
     s.macdHist?.setData(m.hl); s.macdLine?.setData(m.ml); s.macdSig?.setData(m.sl);
+    if (enabled.atr) s.atrLine?.setData(calcATR(candles));
 
     chartRef.current?.timeScale().scrollToRealTime();
-    requestAnimationFrame(redrawCanvas); // redraw boxes after candle update
+    requestAnimationFrame(redrawCanvas);
   }, [candles, enabled, redrawCanvas]);
 
-  // ── Entry price line ─────────────────────────────────────────────────────
+  // ── Entry price line ──────────────────────────────────────────────────────
   useEffect(() => {
     const cs = S.current.candles;
     if (!cs) return;
@@ -422,7 +470,7 @@ function TradingChart({
     }
   }, [position]);
 
-  // ── Fibonacci price lines ────────────────────────────────────────────────
+  // ── Fibonacci price lines ─────────────────────────────────────────────────
   useEffect(() => {
     const cs = S.current.candles;
     if (!cs) return;
@@ -440,12 +488,20 @@ function TradingChart({
     }
   }, [fibState]);
 
-  // Cursor shows crosshair when any draw tool is active
+  // ── Horizontal lines ──────────────────────────────────────────────────────
+  useEffect(() => {
+    const cs = S.current.candles;
+    if (!cs) return;
+    hLineRefs.current.forEach(l => { try { cs.removePriceLine(l); } catch {} });
+    hLineRefs.current = hLines.map(hl =>
+      cs.createPriceLine({ price: hl.price, color: '#5B9CF6', lineWidth: 1, lineStyle: 0, axisLabelVisible: true, title: `$${hl.price.toFixed(2)}` })
+    );
+  }, [hLines]);
+
   const isDrawing = fibState.active || boxDrawState.active;
 
   return (
     <div className="tg-chart-area" style={{ cursor: isDrawing ? 'crosshair' : 'default' }}>
-      {/* Main chart + canvas overlay */}
       <div style={{ position: 'relative' }}>
         <div ref={mainRef} className="tg-lw-main" />
         <canvas
@@ -457,6 +513,8 @@ function TradingChart({
       <div ref={rsiRef}  className="tg-lw-sub" style={{ display: enabled.rsi  ? 'block' : 'none' }} />
       {enabled.macd && <div className="tg-sub-label">MACD (12, 26, 9)</div>}
       <div ref={macdRef} className="tg-lw-sub" style={{ display: enabled.macd ? 'block' : 'none' }} />
+      {enabled.atr  && <div className="tg-sub-label">ATR (14)</div>}
+      <div ref={atrRef}  className="tg-lw-sub" style={{ display: enabled.atr  ? 'block' : 'none' }} />
     </div>
   );
 }
@@ -469,14 +527,24 @@ export default function TradingGroundsPage() {
   const [candles,      setCandles]      = useState(() => buildSeed(HISTORY));
   const [position,     setPosition]     = useState(null);
   const [trades,       setTrades]       = useState([]);
-  const [enabled,      setEnabled]      = useState({ ema20: true, ema50: true, ema200: false, bb: false, darvas: false, rsi: false, macd: false });
+  const [enabled,      setEnabled]      = useState({
+    sma20: true, sma50: true, sma200: false,
+    bb: false, darvas: false, vwap: false,
+    rsi: false, macd: false, atr: false,
+  });
   const [fibState,     setFibState]     = useState({ active: false, p1: null, p2: null });
   const [manualBoxes,  setManualBoxes]  = useState([]);
   const [boxDrawState, setBoxDrawState] = useState({ active: false, p1: null });
+  const [hLines,       setHLines]       = useState([]);
+  const [hLineActive,  setHLineActive]  = useState(false);
+  const hLineActiveRef = useRef(false);
+  const [indSearch,    setIndSearch]    = useState('');
+  const [indOpen,      setIndOpen]      = useState(false);
+
 
   const currentPrice = candles[candles.length - 1]?.close ?? START;
 
-  // ── Load script ──────────────────────────────────────────────────────────
+  // ── Load Lightweight Charts script ────────────────────────────────────────
   useEffect(() => {
     if (window.LightweightCharts) { setLwReady(true); return; }
     const existing = document.getElementById(SCRIPT_ID);
@@ -487,30 +555,30 @@ export default function TradingGroundsPage() {
     document.head.appendChild(s);
   }, []);
 
-  // ── Candle tick ──────────────────────────────────────────────────────────
+  // ── Candle tick ───────────────────────────────────────────────────────────
   useEffect(() => {
     const id = setInterval(() => {
       setCandles(prev => { const c = nextCandle(prev[prev.length - 1]); return [...prev.slice(-(HISTORY - 1)), c]; });
-    }, TICK_S * 1000);
+    }, 2000); // new daily candle every 2 real seconds
     return () => clearInterval(id);
   }, []);
 
-  // ── Unified chart click handler (fib + darvas box) ───────────────────────
+  // Keep hLineActiveRef in sync
+  useEffect(() => { hLineActiveRef.current = hLineActive; }, [hLineActive]);
+
+  // ── Chart click (fib + darvas box + h-line) ──────────────────────────────
   const handleChartClick = useCallback(({ price, time }) => {
-    // Fibonacci
     setFibState(prev => {
       if (!prev.active) return prev;
       if (prev.p1 === null) return { ...prev, p1: price };
       return { active: false, p1: prev.p1, p2: price };
     });
-    // Darvas box draw
     setBoxDrawState(prev => {
       if (!prev.active) return prev;
       if (prev.p1 === null) return { ...prev, p1: { price, time } };
-      // Second click — complete the box
       const p1 = prev.p1;
       setManualBoxes(boxes => [...boxes, {
-        id:        Date.now(),
+        id: Date.now(),
         startTime: Math.min(p1.time, time),
         endTime:   Math.max(p1.time, time),
         top:       Math.max(p1.price, price),
@@ -518,11 +586,14 @@ export default function TradingGroundsPage() {
       }]);
       return { active: false, p1: null };
     });
+    if (hLineActiveRef.current) {
+      setHLines(prev => [...prev, { id: Date.now(), price }]);
+    }
   }, []);
 
   const toggle = key => setEnabled(prev => ({ ...prev, [key]: !prev[key] }));
 
-  // ── Trading ──────────────────────────────────────────────────────────────
+  // ── Trading ───────────────────────────────────────────────────────────────
   const unrealPL   = position ? currentPrice - position.entryPrice : null;
   const unrealPct  = unrealPL != null ? (unrealPL / position.entryPrice) * 100 : null;
   const realisedPL = trades.reduce((s, t) => s + t.pl, 0);
@@ -560,9 +631,9 @@ export default function TradingGroundsPage() {
           <div className="tg-toolbar-group">
             <span className="tg-toolbar-label">Moving Avg</span>
             {[
-              { key: 'ema20',  label: 'EMA 20',  dot: '#5B9CF6' },
-              { key: 'ema50',  label: 'EMA 50',  dot: '#F0A500' },
-              { key: 'ema200', label: 'EMA 200', dot: '#A855F7' },
+              { key: 'sma20',  label: 'SMA 20',  dot: '#5B9CF6' },
+              { key: 'sma50',  label: 'SMA 50',  dot: '#F0A500' },
+              { key: 'sma200', label: 'SMA 200', dot: '#A855F7' },
             ].map(({ key, label, dot }) => (
               <button key={key} className={`tg-ind-btn${enabled[key] ? ' active' : ''}`}
                 style={enabled[key] ? { borderColor: dot, color: dot } : {}} onClick={() => toggle(key)}>
@@ -574,8 +645,7 @@ export default function TradingGroundsPage() {
           <div className="tg-toolbar-group">
             <span className="tg-toolbar-label">Overlays</span>
             {[
-              { key: 'bb',     label: 'Bollinger',       dot: '#8A9BB0' },
-              { key: 'darvas', label: 'Auto Darvas',     dot: '#D4A017' },
+              { key: 'darvas', label: 'Auto Darvas', dot: '#D4A017' },
             ].map(({ key, label, dot }) => (
               <button key={key} className={`tg-ind-btn${enabled[key] ? ' active' : ''}`}
                 style={enabled[key] ? { borderColor: dot, color: dot } : {}} onClick={() => toggle(key)}>
@@ -598,17 +668,14 @@ export default function TradingGroundsPage() {
           </div>
 
           <div className="tg-toolbar-group">
-            <span className="tg-toolbar-label">Drawing</span>
+            <span className="tg-toolbar-label">Draw</span>
 
-            {/* Darvas Box draw tool */}
             <button
               className={`tg-ind-btn${boxDrawState.active || manualBoxes.length > 0 ? ' active' : ''}`}
               style={boxDrawState.active ? { borderColor: '#D4A017', color: '#D4A017' } : {}}
               onClick={() => {
-                setFibState(f => f.active ? { ...f, active: false } : f); // cancel fib if open
-                setBoxDrawState(prev =>
-                  prev.active ? { active: false, p1: null } : { active: true, p1: null }
-                );
+                setFibState(f => f.active ? { ...f, active: false } : f);
+                setBoxDrawState(prev => prev.active ? { active: false, p1: null } : { active: true, p1: null });
               }}
             >
               <span className="tg-ind-dot" style={{ background: '#D4A017' }} />
@@ -625,15 +692,12 @@ export default function TradingGroundsPage() {
               </button>
             )}
 
-            {/* Fibonacci */}
             <button
               className={`tg-ind-btn${fibState.active || (fibState.p1 != null && fibState.p2 != null) ? ' active' : ''}`}
               style={fibState.active ? { borderColor: '#A855F7', color: '#A855F7' } : {}}
               onClick={() => {
-                setBoxDrawState(b => b.active ? { ...b, active: false } : b); // cancel box if open
-                setFibState(prev =>
-                  prev.active ? { active: false, p1: null, p2: null } : { active: true, p1: null, p2: null }
-                );
+                setBoxDrawState(b => b.active ? { ...b, active: false } : b);
+                setFibState(prev => prev.active ? { active: false, p1: null, p2: null } : { active: true, p1: null, p2: null });
               }}
             >
               ✏ Fibonacci
@@ -648,13 +712,117 @@ export default function TradingGroundsPage() {
                 ✕ Clear Fib
               </button>
             )}
+
+            {/* Horizontal line */}
+            <button
+              className={`tg-ind-btn${hLineActive ? ' active' : ''}`}
+              style={hLineActive ? { borderColor: '#5B9CF6', color: '#5B9CF6' } : {}}
+              onClick={() => {
+                setFibState(f => f.active ? { ...f, active: false } : f);
+                setBoxDrawState(b => b.active ? { ...b, active: false } : b);
+                setHLineActive(prev => !prev);
+              }}
+            >
+              <span className="tg-ind-dot" style={{ background: '#5B9CF6' }} />
+              Line
+              {hLineActive && <span style={{ fontSize: '.7rem', marginLeft: 4, opacity: .75 }}>→ click price</span>}
+            </button>
+            {hLines.length > 0 && (
+              <button className="tg-ind-btn" onClick={() => setHLines([])}>
+                ✕ Clear Lines ({hLines.length})
+              </button>
+            )}
           </div>
+
+          {/* ── Indicator search ─────────────────────────────────────────── */}
+          <div
+            className="tg-toolbar-group"
+            style={{ marginLeft: 'auto', position: 'relative' }}
+            onMouseLeave={() => setIndOpen(false)}
+          >
+            <button
+              className={`tg-ind-btn${indOpen ? ' active' : ''}`}
+              onClick={() => { setIndOpen(o => !o); setIndSearch(''); }}
+              style={{ fontWeight: 600 }}
+            >
+              + Indicators
+            </button>
+            {indOpen && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 200,
+                background: 'var(--bg2)',
+                border: '1px solid var(--border)',
+                borderRadius: 10, boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+                width: 310, padding: '12px',
+              }}>
+                <input
+                  autoFocus
+                  value={indSearch}
+                  onChange={e => setIndSearch(e.target.value)}
+                  placeholder="Search indicators…"
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    padding: '7px 12px', borderRadius: 7, marginBottom: 10,
+                    border: '1px solid var(--border)',
+                    background: 'var(--bg)',
+                    color: 'var(--text)', fontSize: '.85rem', outline: 'none',
+                  }}
+                />
+                <div style={{ maxHeight: 290, overflowY: 'auto' }}>
+                  {(() => {
+                    const filtered = INDICATOR_CATALOG.filter(ind =>
+                      ind.label.toLowerCase().includes(indSearch.toLowerCase()) ||
+                      ind.group.toLowerCase().includes(indSearch.toLowerCase()) ||
+                      ind.desc.toLowerCase().includes(indSearch.toLowerCase())
+                    );
+                    const groups = [...new Set(filtered.map(i => i.group))];
+                    return groups.map(group => (
+                      <div key={group}>
+                        <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--accent, #5B9CF6)', padding: '6px 6px 3px', opacity: .8 }}>
+                          {group}
+                        </div>
+                        {filtered.filter(ind => ind.group === group).map(ind => (
+                          <div
+                            key={ind.key}
+                            onClick={() => toggle(ind.key)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 10,
+                              padding: '7px 8px', borderRadius: 7, cursor: 'pointer', marginBottom: 2,
+                              background: enabled[ind.key] ? `${ind.dot}18` : 'transparent',
+                              border: `1px solid ${enabled[ind.key] ? `${ind.dot}40` : 'transparent'}`,
+                              transition: 'background .15s, border-color .15s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = enabled[ind.key] ? `${ind.dot}28` : 'var(--bg)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = enabled[ind.key] ? `${ind.dot}18` : 'transparent'; }}
+                          >
+                            <span style={{ width: 9, height: 9, borderRadius: '50%', background: ind.dot, flexShrink: 0, boxShadow: `0 0 6px ${ind.dot}88` }} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: '.84rem', fontWeight: 600, color: 'var(--text)' }}>{ind.label}</div>
+                              <div style={{ fontSize: '.71rem', color: 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ind.desc}</div>
+                            </div>
+                            <span style={{
+                              fontSize: '.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: 5,
+                              background: enabled[ind.key] ? ind.dot : 'var(--border)',
+                              color: enabled[ind.key] ? '#fff' : 'var(--muted)',
+                              flexShrink: 0, letterSpacing: '.03em',
+                            }}>
+                              {enabled[ind.key] ? 'ON' : 'OFF'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* ── Chart + Panel layout ───────────────────────────────────────── */}
         <div className="tg-layout">
 
-          {/* Left: chart */}
           <div className="tg-chart-col">
             {!lwReady ? (
               <div className="tg-chart-loading">
@@ -669,6 +837,7 @@ export default function TradingGroundsPage() {
                 fibState={fibState}
                 manualBoxes={manualBoxes}
                 boxDrawState={boxDrawState}
+                hLines={hLines}
                 onChartClick={handleChartClick}
                 theme={theme}
                 lwReady={lwReady}
