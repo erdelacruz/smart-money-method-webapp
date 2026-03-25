@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 // ---------------------------------------------------------------------------
 // Persist a visitor UUID in localStorage for backend tracking
@@ -82,19 +83,21 @@ function Sparkline({ data }) {
 // ---------------------------------------------------------------------------
 export default function PublicPage() {
   const { theme } = useTheme();
+  const { user } = useAuth();
 
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeTab,    setActiveTab]    = useState('1W');
 
-  // Record visit on mount
+  // Record visit on mount — skip for logged-in admin users
   useEffect(() => {
+    if (user) return;
     const visitorId = getOrCreateVisitorId();
     fetch('/api/stats/visit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ visitorId }),
     }).catch(() => console.warn('Could not record visit — is the backend running?'));
-  }, []);
+  }, [user]);
 
   const filteredStocks = STOCKS.filter(s =>
     activeFilter === 'All' ||
