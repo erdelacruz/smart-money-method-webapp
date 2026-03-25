@@ -4231,3 +4231,305 @@ body::before {
 .dca-empty-icon  { font-size: 3rem; margin-bottom: 1rem; }
 .dca-empty-title { font-size: 1.1rem; font-weight: 600; color: var(--text2); margin-bottom: .5rem; }
 .dca-empty-sub   { font-size: .88rem; line-height: 1.6; }
+
+/* ============================================================
+   Trading Grounds — TradingView Lightweight Charts simulator
+   ============================================================ */
+
+.tg-page { min-height: 100vh; }
+
+/* ── Hero ── */
+.tg-page .page-hero    { padding: 3rem 2rem 2rem; text-align: center; }
+.tg-page .hero-eyebrow { color: var(--gold); font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; margin-bottom: .5rem; }
+.tg-page .hero-title   { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; color: var(--text); margin: 0 0 .6rem; }
+.tg-page .hero-sub     { color: var(--text2); font-size: .95rem; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+/* ── Body ── */
+.tg-body {
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 0 1.25rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Indicator toolbar ── */
+.tg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .6rem 1rem;
+}
+.tg-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+.tg-toolbar-group + .tg-toolbar-group {
+  border-left: 1px solid var(--border2);
+  padding-left: 1.25rem;
+}
+.tg-toolbar-label {
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tg-ind-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .3rem .65rem;
+  font-size: .78rem;
+  font-weight: 500;
+  color: var(--text2);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.tg-ind-btn:hover { border-color: var(--border2); color: var(--text); }
+.tg-ind-btn.active { background: var(--bg4); font-weight: 600; }
+.tg-ind-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Two-column layout: chart | panel ── */
+.tg-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 1rem;
+  align-items: start;
+}
+
+/* ── Chart column ── */
+.tg-chart-col {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  min-height: 460px;
+}
+.tg-chart-area { display: flex; flex-direction: column; }
+.tg-lw-main    { width: 100%; height: 440px; }
+.tg-lw-sub     { width: 100%; height: 90px; border-top: 1px solid var(--border); }
+.tg-sub-label  {
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  padding: .3rem .75rem .1rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Chart loading state */
+.tg-chart-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 460px;
+  color: var(--text2);
+  font-size: .9rem;
+}
+.tg-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: tg-spin .8s linear infinite;
+}
+@keyframes tg-spin  { to { transform: rotate(360deg); } }
+
+/* ── Right trading panel ── */
+.tg-panel {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+/* Live price header */
+.tg-panel-price {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem .85rem;
+}
+.tg-panel-ticker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .4rem;
+}
+.tg-ticker    { font-size: .85rem; font-weight: 700; color: var(--text); letter-spacing: .04em; }
+.tg-panel-big { font-size: 1.75rem; font-weight: 800; color: var(--gold); letter-spacing: -.01em; line-height: 1; }
+
+/* Live dot + badge */
+.tg-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--success);
+}
+.tg-live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: tg-pulse 1.4s ease-in-out infinite;
+}
+@keyframes tg-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .45; transform: scale(.7); }
+}
+
+/* Session stats */
+.tg-panel-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .5rem;
+}
+.tg-ps {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .6rem .75rem;
+}
+.tg-ps-label {
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  margin-bottom: .25rem;
+}
+.tg-ps-val { font-size: .9rem; font-weight: 700; color: var(--text); }
+
+/* Panel sections */
+.tg-panel-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.tg-panel-section-title {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text2);
+  padding: .6rem .9rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+.tg-log-count { font-size: .7rem; color: var(--text2); background: var(--bg4); border-radius: 4px; padding: 1px 6px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+
+/* Open position grid */
+.tg-pos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem;
+  padding: .75rem .9rem;
+}
+.tg-no-pos {
+  padding: .9rem;
+  font-size: .82rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* BUY / SELL buttons */
+.tg-panel-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .6rem;
+}
+.tg-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .75rem;
+  font-size: .95rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+}
+.tg-btn:active   { transform: scale(.97); }
+.tg-btn:disabled { opacity: .3; cursor: not-allowed; transform: none; }
+.tg-btn-buy  { background: var(--success); color: #fff; }
+.tg-btn-sell { background: var(--danger);  color: #fff; }
+
+/* Trade history */
+.tg-history { flex: 1; }
+.tg-history-list {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: .4rem .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.tg-history-row {
+  background: var(--bg3);
+  border-radius: 6px;
+  padding: .55rem .7rem;
+  border-left: 3px solid transparent;
+}
+.tg-history-row.win  { border-left-color: var(--success); }
+.tg-history-row.loss { border-left-color: var(--danger);  }
+.tg-history-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .25rem;
+}
+.tg-history-id     { font-size: .75rem; font-weight: 700; color: var(--text2); }
+.tg-history-prices { font-size: .82rem; color: var(--text); display: flex; align-items: center; gap: .35rem; margin-bottom: .15rem; }
+.tg-arrow          { color: var(--muted); font-size: .75rem; }
+.tg-td-muted       { color: var(--text2); }
+.tg-win  { color: var(--success) !important; }
+.tg-loss { color: var(--danger)  !important; }
+
+/* ── Light theme ── */
+[data-theme="light"] .tg-toolbar,
+[data-theme="light"] .tg-chart-col,
+[data-theme="light"] .tg-panel-price,
+[data-theme="light"] .tg-ps,
+[data-theme="light"] .tg-panel-section {
+  background: var(--bg2);
+  border-color: var(--border);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .tg-layout { grid-template-columns: 1fr; }
+  .tg-panel  { display: grid; grid-template-columns: repeat(2, 1fr); }
+  .tg-panel-price { grid-column: 1 / -1; }
+  .tg-panel-btns  { grid-column: 1 / -1; }
+  .tg-history     { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+  .tg-panel { display: flex; flex-direction: column; }
+  .tg-lw-main { height: 320px; }
+}

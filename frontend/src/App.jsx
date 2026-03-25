@@ -31,6 +31,7 @@ import CompoundingCalculatorPage  from './pages/CompoundingCalculatorPage';
 import BudgetToolPage            from './pages/BudgetToolPage';
 import DCACalculatorPage         from './pages/DCACalculatorPage';
 import ChartsPage               from './pages/ChartsPage';
+import TradingGroundsPage       from './pages/TradingGroundsPage';
 
 // ---------------------------------------------------------------------------
 // Inner app — needs useLocation so must live inside BrowserRouter
@@ -72,6 +73,7 @@ function AppInner() {
           <Route path="/compounding-calculator" element={<CompoundingCalculatorPage />} />
           <Route path="/budget"                 element={<BudgetToolPage />} />
           <Route path="/dca-calculator"         element={<DCACalculatorPage />} />
+          <Route path="/trading-grounds"        element={<TradingGroundsPage />} />
           {/* Charts route: handled by always-mounted ChartsPage above */}
           <Route path="/charts"                 element={null} />
           {/* Legacy redirects */}

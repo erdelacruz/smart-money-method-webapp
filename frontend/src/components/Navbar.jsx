@@ -102,6 +102,13 @@ export default function Navbar() {
                     <div className="nav-dropdown-sub">Calculate your Trading Profit & Loss</div>
                   </div>
                 </Link>
+                <Link to="/trading-grounds" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>
+                  <span className="nav-dropdown-icon">🎯</span>
+                  <div>
+                    <div className="nav-dropdown-label">Trading Grounds</div>
+                    <div className="nav-dropdown-sub">Simulate BUY & SELL on a live candlestick chart</div>
+                  </div>
+                </Link>
               </div>
             )}
           </div>
