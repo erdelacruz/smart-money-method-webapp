@@ -19,30 +19,22 @@ import authRoutes    from './routes/auth.js';
 import statsRoutes   from './routes/stats.js';
 import asxRoutes     from './routes/asx.js';
 
-const app = express();
+const app  = express();
+const PORT = 5000;
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://smartmoneymethod.au',
-  'https://www.smartmoneymethod.au',
-];
-app.use(cors({
-  origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)),
-  credentials: true,
-}));
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 
 app.use('/api/auth',  authRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/asx',   asxRoutes);
 
-// Connect to MongoDB (non-blocking — safe for serverless cold starts)
-connectDB().catch(err => console.error('MongoDB connection error:', err.message));
-
-// Start HTTP server only when running locally (not on Vercel serverless)
-if (!process.env.VERCEL) {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
-}
-
-export default app;
+// Connect to MongoDB Atlas then start listening
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
+  })
+  .catch(err => {
+    console.error('Failed to connect to MongoDB:', err.message);
+    process.exit(1);
+  });
