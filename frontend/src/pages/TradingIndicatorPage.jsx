@@ -425,7 +425,7 @@ export default function TradingIndicatorPage() {
       {/* ── PAGE HERO ─────────────────────────────────────────── */}
       <div className="indicator-hero page-hero">
         <div className="indicator-hero-inner">
-          <div className="section-eyebrow">Technical Analysis</div>
+          <div className="section-eyebrow">Share Trading</div>
           <h1 className="indicator-hero-title">Trading Indicators</h1>
           <p className="indicator-hero-sub">
             Learn how professional traders use technical indicators to find entry and exit points on the ASX.

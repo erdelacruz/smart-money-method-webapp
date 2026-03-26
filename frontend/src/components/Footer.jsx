@@ -23,7 +23,7 @@ export default function Footer() {
             </svg>
             <div className="footer-brand-name">Smart Money <span>Method</span></div>
           </div>
-          <div className="footer-brand-desc">Understand your take-home pay, build a bulletproof budget and savings, harness the power of compounding, and learn how to trade and invest — all in one smart platform.</div>
+          <div className="footer-brand-desc">A complete suite of financial tools designed for Australians — model your income, plan your budget, simulate investment strategies, and trade with confidence, all in one platform.</div>
         </div>
       </div>
       <div className="footer-bottom">

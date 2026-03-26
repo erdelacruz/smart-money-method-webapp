@@ -9,7 +9,52 @@
 // ============================================================
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+
+// Helper — intercept <a> clicks while a game session is active
+function useNavWarning(isActive) {
+  const navigate = useNavigate();
+  const [showWarning, setShowWarning] = useState(false);
+  const pendingHref = useRef(null);
+
+  // Browser refresh / tab close
+  useEffect(() => {
+    const handler = (e) => { if (isActive) { e.preventDefault(); e.returnValue = ''; } };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isActive]);
+
+  // Intercept all anchor / react-router link clicks at capture phase
+  useEffect(() => {
+    if (!isActive) return;
+    const handler = (e) => {
+      const anchor = e.target.closest('a[href]');
+      if (!anchor) return;
+      const href = anchor.getAttribute('href');
+      // Skip same-page hash links or external URLs
+      if (!href || href.startsWith('#') || href.startsWith('http')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      pendingHref.current = href;
+      setShowWarning(true);
+    };
+    document.addEventListener('click', handler, true);
+    return () => document.removeEventListener('click', handler, true);
+  }, [isActive]);
+
+  const confirm = useCallback(() => {
+    setShowWarning(false);
+    if (pendingHref.current) { navigate(pendingHref.current); pendingHref.current = null; }
+  }, [navigate]);
+
+  const cancel = useCallback(() => {
+    setShowWarning(false);
+    pendingHref.current = null;
+  }, []);
+
+  return { showWarning, confirm, cancel };
+}
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const HISTORY    = 350;
@@ -709,9 +754,42 @@ export default function TradingGroundsPage() {
 
   const MEDAL = ['🥇', '🥈', '🥉'];
 
+  // ── Navigation blocker ────────────────────────────────────────────────────
+  const isActive = !!playerName && !gameOver;
+  const { showWarning, confirm: confirmNav, cancel: cancelNav } = useNavWarning(isActive);
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="tg-page">
+
+      {/* ── Navigation warning modal ────────────────────────────────────── */}
+      {showWarning && (
+        <div className="tg-modal-overlay">
+          <div className="tg-modal">
+            <div className="tg-modal-title">⚠️ Leave Trading Session?</div>
+            <p className="tg-modal-sub">
+              You have an active trading session as <strong>{playerName}</strong>.
+              Leaving this page will lose all your current progress and trades.
+            </p>
+            <div style={{ display: 'flex', gap: '.75rem', marginTop: '8px' }}>
+              <button
+                className="tg-btn tg-btn-close"
+                style={{ flex: 1, justifyContent: 'center' }}
+                onClick={cancelNav}
+              >
+                Stay &amp; Keep Playing
+              </button>
+              <button
+                className="tg-btn tg-btn-sell"
+                style={{ flex: 1, justifyContent: 'center' }}
+                onClick={confirmNav}
+              >
+                Leave &amp; Lose Progress
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Name modal ──────────────────────────────────────────────────── */}
       {nameModalOpen && (
@@ -780,7 +858,7 @@ export default function TradingGroundsPage() {
       )}
 
       <div className="tg-header page-hero">
-        <div className="section-eyebrow">Trading Simulation</div>
+        <div className="section-eyebrow">Share Trading</div>
         <h1 className="tg-hero-title">Trading Grounds</h1>
         <p className="tg-hero-sub">Live candlestick simulator — AUD $10,000 capital · 6 rounds · climb the leaderboard.</p>
       </div>

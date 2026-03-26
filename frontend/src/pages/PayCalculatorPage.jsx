@@ -197,7 +197,7 @@ export default function PayCalculatorPage() {
     <div className="pay-page">
       {/* Header */}
       <div className="pay-header page-hero">
-        <div className="section-eyebrow">Financial Tools</div>
+        <div className="section-eyebrow">Personal Finance</div>
         <h1 className="pay-title">Australian Pay Calculator</h1>
         <p className="pay-subtitle">Calculate your take-home pay after income tax, Medicare levy, HECS/HELP and super — based on 2025–26 ATO rates.</p>
       </div>

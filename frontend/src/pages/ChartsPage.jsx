@@ -234,7 +234,7 @@ export default function ChartsPage({ isVisible = true }) {
       {/* ── PAGE HERO ── */}
       <div className="charts-hero page-hero">
         <div className="charts-hero-inner">
-          <div className="section-eyebrow">Trading Tools</div>
+          <div className="section-eyebrow">Chart &amp; Screener</div>
           <h1 className="charts-hero-title">Chart &amp; Screener</h1>
           <p className="charts-hero-sub">
             Live price charts and stock screener for ASX-listed shares and Australian ETFs,

@@ -288,7 +288,7 @@ export default function BudgetToolPage() {
     <div className="budget-page">
       {/* Header */}
       <div className="budget-header page-hero">
-        <div className="section-eyebrow">Financial Tools</div>
+        <div className="section-eyebrow">Personal Finance</div>
         <h1 className="budget-title">Budget Planner</h1>
         <p className="budget-subtitle">
           Enter your monthly income, expenses and savings goals to see your net surplus and

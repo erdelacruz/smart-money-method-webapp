@@ -254,7 +254,7 @@ export default function ProfitLossPage() {
       {/* ── PAGE HERO ─────────────────────────────────────────── */}
       <div className="plc-hero page-hero">
         <div className="plc-hero-inner">
-          <div className="section-eyebrow">ASX Tools</div>
+          <div className="section-eyebrow">Share Trading</div>
           <h1 className="plc-hero-title">Profit / Loss Calculator</h1>
           <p className="plc-hero-sub">
             Calculate your net buy cost, net sell proceeds, brokerage fees, GST, and overall

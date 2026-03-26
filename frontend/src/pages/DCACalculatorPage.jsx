@@ -328,7 +328,7 @@ export default function DCACalculatorPage() {
   return (
     <div className="dca-page">
       <div className="dca-header page-hero">
-        <div className="section-eyebrow">ASX Trading &amp; Investing</div>
+        <div className="section-eyebrow">Share & ETF Investing</div>
         <h1 className="dca-title">Dollar Cost Averaging Calculator</h1>
         <p className="dca-subtitle">
           See how regular investing into any ASX stock and ETFs would have grown using real historical prices.

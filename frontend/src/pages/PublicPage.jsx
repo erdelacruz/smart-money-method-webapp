@@ -225,7 +225,7 @@ export default function PublicPage() {
               <em>every Australian needs.</em>
             </h1>
             <p className="hero-desc">
-              Understand your take-home pay, build a bulletproof budget and savings, harness the power of compounding, and learn how to trade and invest — all in one smart platform.
+              A complete suite of financial tools designed for Australians — model your income, plan your budget, simulate investment strategies, and trade with confidence, all in one platform.
             </p>
           </div>
 
@@ -439,17 +439,19 @@ export default function PublicPage() {
             <h2 className="section-title">Tools to help you manage your money</h2>
             <div className="tools-grid">
               {[
-                { icon:'📈', title:'Trading P/L Calculator',  href:'/calculator',             desc:'Calculate your profit or loss on any trade. Enter your entry price, exit price, quantity and brokerage to see your net return instantly.' },
-                { icon:'💵', title:'Pay Calculator',           href:'/pay-calculator',         desc:'Work out your take-home pay after tax, Medicare levy and super contributions. Supports weekly, fortnightly and monthly pay cycles.' },
-                { icon:'📋', title:'Budget Planner',           href:'/budget',                 desc:'Plan your monthly budget by tracking income and expenses across categories. Visualise where your money goes and find opportunities to save.' },
-                { icon:'📊', title:'Compounding Calculator',   href:'/compounding-calculator', desc:'See the power of compound interest over time. Enter a starting amount, regular contributions, interest rate and time horizon to project your wealth.' },
-                { icon:'📉', title:'DCA Calculator',           href:'/dca-calculator',         desc:'Simulate dollar cost averaging for any ASX stock. Enter regular contributions and see how your portfolio would have grown over time.' },
-                { icon:'📊', title:'Chart & Screener',        href:'/charts',                 desc:'Live price charts and stock screener for ASX shares and Australian ETFs. Search any symbol and filter by market cap, price, and volume.' },
-                { icon:'🕯️', title:'Trading Simulator',       href:'/trading-grounds',        desc:'Practice BUY & SELL on a live candlestick simulator with no real money. Add indicators, draw trend lines, and track your paper trading P&L.' },
-                { icon:'🔁', title:'Backtesting',              href:'/backtesting',            desc:'Replay historical ASX price data and test your trading strategy with paper trades. Jump to any year, add indicators, and track your results.' },
+                { icon:'📈', title:'Trading P/L Calculator',  href:'/calculator',             desc:'Calculate your profit or loss on any trade. Enter your entry price, exit price, quantity and brokerage to see your net return instantly.',   accent:'#3B82F6' },
+                { icon:'💵', title:'Pay Calculator',           href:'/pay-calculator',         desc:'Work out your take-home pay after tax, Medicare levy and super contributions. Supports weekly, fortnightly and monthly pay cycles.',          accent:'#10B981' },
+                { icon:'📋', title:'Budget Planner',           href:'/budget',                 desc:'Plan your monthly budget by tracking income and expenses across categories. Visualise where your money goes and find opportunities to save.',  accent:'#F59E0B' },
+                { icon:'📊', title:'Compounding Calculator',   href:'/compounding-calculator', desc:'See the power of compound interest over time. Enter a starting amount, regular contributions, interest rate and time horizon to project your wealth.', accent:'#8B5CF6' },
+                { icon:'📉', title:'DCA Calculator',           href:'/dca-calculator',         desc:'Simulate dollar cost averaging for any ASX stock. Enter regular contributions and see how your portfolio would have grown over time.',         accent:'#EC4899' },
+                { icon:'🔍', title:'Chart & Screener',        href:'/charts',                 desc:'Live price charts and stock screener for ASX shares and Australian ETFs. Search any symbol and filter by market cap, price, and volume.',      accent:'#06B6D4' },
+                { icon:'🕯️', title:'Trading Simulator',       href:'/trading-grounds',        desc:'Practice LONG & SHORT on a live candlestick simulator with no real money. Add indicators, draw trend lines, and track your paper trading P&L.', accent:'#F97316' },
+                { icon:'🔁', title:'Backtesting',              href:'/backtesting',            desc:'Replay historical ASX price data and test your trading strategy with paper trades. Jump to any year, add indicators, and track your results.', accent:'#14B8A6' },
               ].map(tool => (
-                <div key={tool.title} className="tool-card">
-                  <div className="tool-icon">{tool.icon}</div>
+                <div key={tool.title} className="tool-card" style={{ '--tool-accent': tool.accent }}>
+                  <div className="tool-icon-wrap">
+                    <span className="tool-icon-bubble">{tool.icon}</span>
+                  </div>
                   <div className="tool-title">{tool.title}</div>
                   <div className="tool-desc">{tool.desc}</div>
                   <Link to={tool.href} className="tool-btn">Open Tool →</Link>

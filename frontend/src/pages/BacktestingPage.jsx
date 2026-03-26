@@ -696,7 +696,7 @@ export default function BacktestingPage() {
   return (
     <div className="bt-page">
       <div className="bt-header page-hero">
-        <div className="section-eyebrow">Practice Mode</div>
+        <div className="section-eyebrow">Share Trading</div>
         <h1 className="bt-hero-title">Backtesting</h1>
         <p className="bt-hero-sub">Replay historical ASX price data and test your trading strategy with paper trades.</p>
       </div>

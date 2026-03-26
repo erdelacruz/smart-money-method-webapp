@@ -78,7 +78,7 @@ export default function CompoundingCalculatorPage() {
     <div className="comp-page">
       {/* Header */}
       <div className="comp-header page-hero">
-        <div className="section-eyebrow">Financial Tools</div>
+        <div className="section-eyebrow">Personal Finance</div>
         <h1 className="comp-title">Money Compounding Calculator</h1>
         <p className="comp-subtitle">
           See how your savings grow over time with monthly compounding. Enter your starting balance,
