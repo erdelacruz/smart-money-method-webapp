@@ -15,15 +15,6 @@
     { "src": "/api/(.*)", "dest": "backend/server.js" },
     { "src": "/assets/(.*)", "dest": "frontend/assets/$1" },
     { "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json|txt))", "dest": "frontend/$1" },
-    { "src": "/calculator",           "dest": "frontend/calculator/index.html" },
-    { "src": "/pay-calculator",       "dest": "frontend/pay-calculator/index.html" },
-    { "src": "/budget",               "dest": "frontend/budget/index.html" },
-    { "src": "/compounding-calculator","dest": "frontend/compounding-calculator/index.html" },
-    { "src": "/dca-calculator",       "dest": "frontend/dca-calculator/index.html" },
-    { "src": "/charts",               "dest": "frontend/charts/index.html" },
-    { "src": "/trading-grounds",      "dest": "frontend/trading-grounds/index.html" },
-    { "src": "/backtesting",          "dest": "frontend/backtesting/index.html" },
-    { "src": "/indicators",           "dest": "frontend/indicators/index.html" },
     { "src": "/(.*)", "dest": "frontend/index.html" }
   ]
 }
