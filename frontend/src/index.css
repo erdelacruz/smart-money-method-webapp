@@ -2705,7 +2705,7 @@ body::before {
   margin-top: 0;
   border: 1px solid var(--border);
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   background: var(--surface);
 }
 .tv-widget-header {
@@ -3159,12 +3159,55 @@ body::before {
 }
 [data-theme="dark"] .chart-symbol-btn--clear { background: var(--bg3, #1e2a38); }
 
+/* Autosuggest dropdown */
+.chart-suggest-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 320px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14);
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  z-index: 999;
+  overflow: hidden;
+}
+.chart-suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.chart-suggest-item:hover,
+.chart-suggest-item--active { background: var(--bg3, rgba(55,138,221,0.10)); }
+.chart-suggest-code {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 700;
+  color: #378ADD;
+  min-width: 48px;
+}
+.chart-suggest-name {
+  font-size: 13px;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .charts-tv-container {
   flex: 1;
   width: 100%;
   height: 100% !important; /* override .tv-widget-container fixed 500px */
   min-height: 400px;
   background: var(--surface);
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
 }
 .charts-tv-container.tradingview-widget-container {
   flex: 1;

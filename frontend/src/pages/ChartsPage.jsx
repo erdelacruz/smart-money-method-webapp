@@ -19,22 +19,47 @@ const TABS = [
 // ---------------------------------------------------------------------------
 function PriceChartTab() {
   const containerRef = useRef(null);
+  const suggestRef   = useRef(null);
+  const debounceRef  = useRef(null);
   const { theme } = useTheme();
-  const [inputVal, setInputVal] = useState('BHP');
-  const [symbol,   setSymbol]   = useState('ASX:BHP');
+  const [inputVal,    setInputVal]    = useState('BHP');
+  const [symbol,      setSymbol]      = useState('ASX:BHP');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggest, setShowSuggest] = useState(false);
 
-  const applySymbol = () => {
-    const val = inputVal.trim().toUpperCase();
-    // Only apply if 2–10 alphabetic characters (ASX code format)
-    if (/^[A-Z]{2,10}$/.test(val)) {
-      setSymbol(`ASX:${val}`);
-    } else {
-      setInputVal(symbol.replace('ASX:', '')); // revert to last valid
-    }
+  // Debounced API search — same endpoint as BacktestingPage
+  useEffect(() => {
+    const q = inputVal.trim();
+    if (q.length < 1) { setSuggestions([]); return; }
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res  = await fetch(`/api/asx/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        setSuggestions(data.results || []);
+        setShowSuggest(true);
+      } catch { setSuggestions([]); }
+    }, 200);
+    return () => clearTimeout(debounceRef.current);
+  }, [inputVal]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const h = (e) => { if (!suggestRef.current?.contains(e.target)) setShowSuggest(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  const applySymbol = (val = inputVal) => {
+    const v = val.trim().toUpperCase();
+    if (/^[A-Z]{2,10}$/.test(v)) { setSymbol(`ASX:${v}`); setInputVal(v); }
+    else setInputVal(symbol.replace('ASX:', ''));
+    setShowSuggest(false); setSuggestions([]);
   };
 
   const handleKey = (e) => {
     if (e.key === 'Enter') applySymbol();
+    if (e.key === 'Escape') setShowSuggest(false);
   };
 
   useEffect(() => {
@@ -77,19 +102,38 @@ function PriceChartTab() {
     <div className="charts-tab-body">
       <div className="tv-widget-wrap">
         <div className="tv-widget-header">
-          <div className="chart-symbol-search">
-            <span className="chart-symbol-prefix">ASX:</span>
-            <input
-              className="chart-symbol-input"
-              value={inputVal}
-              onChange={e => setInputVal(e.target.value.toUpperCase())}
-              onKeyDown={handleKey}
-              placeholder="e.g. BHP"
-              maxLength={10}
-              spellCheck={false}
-            />
-            <button className="chart-symbol-btn" onClick={applySymbol}>Search</button>
-            <button className="chart-symbol-btn chart-symbol-btn--clear" onClick={() => setInputVal('')}>Clear</button>
+          <div ref={suggestRef} style={{ position: 'relative' }}>
+            <div className="chart-symbol-search">
+              <span className="chart-symbol-prefix">ASX:</span>
+              <input
+                className="chart-symbol-input"
+                value={inputVal}
+                onChange={e => { setInputVal(e.target.value.toUpperCase()); setShowSuggest(true); }}
+                onFocus={() => suggestions.length && setShowSuggest(true)}
+                onKeyDown={handleKey}
+                placeholder="e.g. BHP"
+                maxLength={10}
+                spellCheck={false}
+                autoComplete="off"
+              />
+              <button className="chart-symbol-btn" onClick={() => applySymbol()}>Search</button>
+              <button className="chart-symbol-btn chart-symbol-btn--clear" onClick={() => { setInputVal(''); setSuggestions([]); setShowSuggest(false); }}>Clear</button>
+            </div>
+
+            {showSuggest && suggestions.length > 0 && (
+              <ul className="chart-suggest-list">
+                {suggestions.map(s => (
+                  <li
+                    key={s.ticker}
+                    className="chart-suggest-item"
+                    onMouseDown={e => { e.preventDefault(); applySymbol(s.ticker); }}
+                  >
+                    <span className="chart-suggest-code">{s.ticker}</span>
+                    <span className="chart-suggest-name">{s.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className="tv-widget-title-group">
             <span className="tv-widget-label">📈 Live Price Chart</span>
