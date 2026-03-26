@@ -180,10 +180,18 @@ export default function PublicPage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeTab,    setActiveTab]    = useState('1W');
   const [heroSlide,    setHeroSlide]    = useState(0); // 0 = savings, 1 = trading
+  const [leaderboard,  setLeaderboard]  = useState([]);
 
   useEffect(() => {
     const id = setInterval(() => setHeroSlide(s => (s + 1) % 3), 3000);
     return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/scores/trading-grounds')
+      .then(r => r.json())
+      .then(d => setLeaderboard(d.scores || []))
+      .catch(() => {});
   }, []);
 
   // Record visit on mount — skip for logged-in admin users
@@ -421,31 +429,75 @@ export default function PublicPage() {
       </section>
 
 
-      {/* ── TOOLS ───────────────────────────────────────────── */}
-      <section className="tools-section">
-        <div className="section-eyebrow">Financial Tools</div>
-        <h2 className="section-title">Tools to help you manage your money</h2>
-        <div className="tools-grid">
-          {[
-            { icon:'📈', title:'Trading P/L Calculator',  href:'/calculator',             desc:'Calculate your profit or loss on any trade. Enter your entry price, exit price, quantity and brokerage to see your net return instantly.' },
-            { icon:'💵', title:'Pay Calculator',           href:'/pay-calculator',         desc:'Work out your take-home pay after tax, Medicare levy and super contributions. Supports weekly, fortnightly and monthly pay cycles.' },
-            { icon:'📋', title:'Budget Planner',           href:'/budget',                 desc:'Plan your monthly budget by tracking income and expenses across categories. Visualise where your money goes and find opportunities to save.' },
-            { icon:'📊', title:'Compounding Calculator',   href:'/compounding-calculator', desc:'See the power of compound interest over time. Enter a starting amount, regular contributions, interest rate and time horizon to project your wealth.' },
-            { icon:'📉', title:'DCA Calculator',           href:'/dca-calculator',         desc:'Simulate dollar cost averaging for any ASX stock. Enter regular contributions and see how your portfolio would have grown over time.' },
-            { icon:'📊', title:'Chart & Screener',        href:'/charts',                 desc:'Live price charts and stock screener for ASX shares and Australian ETFs. Search any symbol and filter by market cap, price, and volume.' },
-            { icon:'🕯️', title:'Trading Simulator',       href:'/trading-grounds',        desc:'Practice BUY & SELL on a live candlestick simulator with no real money. Add indicators, draw trend lines, and track your paper trading P&L.' },
-            { icon:'🔁', title:'Backtesting',              href:'/backtesting',            desc:'Replay historical ASX price data and test your trading strategy with paper trades. Jump to any year, add indicators, and track your results.' },
-          ].map(tool => (
-            <div key={tool.title} className="tool-card">
-              <div className="tool-icon">{tool.icon}</div>
-              <div className="tool-title">{tool.title}</div>
-              <div className="tool-desc">{tool.desc}</div>
-              <Link to={tool.href} className="tool-btn">Open Tool →</Link>
+      {/* ── TOOLS + LEADERBOARD side-by-side ────────────────────── */}
+      <section className="tools-section tools-lb-wrap">
+        <div className="tools-lb-layout">
+
+          {/* Left: tools */}
+          <div className="tools-lb-left">
+            <div className="section-eyebrow">Financial Tools</div>
+            <h2 className="section-title">Tools to help you manage your money</h2>
+            <div className="tools-grid">
+              {[
+                { icon:'📈', title:'Trading P/L Calculator',  href:'/calculator',             desc:'Calculate your profit or loss on any trade. Enter your entry price, exit price, quantity and brokerage to see your net return instantly.' },
+                { icon:'💵', title:'Pay Calculator',           href:'/pay-calculator',         desc:'Work out your take-home pay after tax, Medicare levy and super contributions. Supports weekly, fortnightly and monthly pay cycles.' },
+                { icon:'📋', title:'Budget Planner',           href:'/budget',                 desc:'Plan your monthly budget by tracking income and expenses across categories. Visualise where your money goes and find opportunities to save.' },
+                { icon:'📊', title:'Compounding Calculator',   href:'/compounding-calculator', desc:'See the power of compound interest over time. Enter a starting amount, regular contributions, interest rate and time horizon to project your wealth.' },
+                { icon:'📉', title:'DCA Calculator',           href:'/dca-calculator',         desc:'Simulate dollar cost averaging for any ASX stock. Enter regular contributions and see how your portfolio would have grown over time.' },
+                { icon:'📊', title:'Chart & Screener',        href:'/charts',                 desc:'Live price charts and stock screener for ASX shares and Australian ETFs. Search any symbol and filter by market cap, price, and volume.' },
+                { icon:'🕯️', title:'Trading Simulator',       href:'/trading-grounds',        desc:'Practice BUY & SELL on a live candlestick simulator with no real money. Add indicators, draw trend lines, and track your paper trading P&L.' },
+                { icon:'🔁', title:'Backtesting',              href:'/backtesting',            desc:'Replay historical ASX price data and test your trading strategy with paper trades. Jump to any year, add indicators, and track your results.' },
+              ].map(tool => (
+                <div key={tool.title} className="tool-card">
+                  <div className="tool-icon">{tool.icon}</div>
+                  <div className="tool-title">{tool.title}</div>
+                  <div className="tool-desc">{tool.desc}</div>
+                  <Link to={tool.href} className="tool-btn">Open Tool →</Link>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Right: leaderboard */}
+          <div className="tools-lb-right">
+            <div className="pub-lb-head">
+              <div>
+                <div className="section-eyebrow">Trading Simulation</div>
+                <h2 className="section-title" style={{ marginBottom: '.4rem' }}>Top Traders</h2>
+                <p className="pub-lb-sub">AUD $10,000 · 6 rounds · highest final capital wins</p>
+              </div>
+              <Link to="/trading-grounds#tg-chart" className="pub-lb-cta">Play Now →</Link>
+            </div>
+
+            {leaderboard.length === 0 ? (
+              <div className="pub-lb-empty">No scores yet — be the first!</div>
+            ) : (
+              <div className="pub-lb-table">
+                <div className="pub-lb-thead">
+                  <span>Rank</span><span>Trader</span><span>Final Capital</span><span>Return</span>
+                </div>
+                {leaderboard.map((s, i) => {
+                  const MEDAL = ['🥇','🥈','🥉'];
+                  return (
+                    <div key={i} className={`pub-lb-row${i === 0 ? ' pub-lb-gold' : i === 1 ? ' pub-lb-silver' : i === 2 ? ' pub-lb-bronze' : ''}`}>
+                      <span className="pub-lb-rank">{i < 3 ? MEDAL[i] : `#${i + 1}`}</span>
+                      <span className="pub-lb-name">
+                        <span className={`pub-lb-avatar rank-${i}`}>{s.name.charAt(0).toUpperCase()}</span>
+                        {s.name}
+                      </span>
+                      <span className="pub-lb-amount">${s.totalAmount.toFixed(2)}</span>
+                      <span className={`pub-lb-pct ${s.totalProfitPct >= 0 ? 'pub-lb-win' : 'pub-lb-loss'}`}>
+                        {s.totalProfitPct >= 0 ? '+' : ''}{s.totalProfitPct.toFixed(2)}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
         </div>
       </section>
-
 
 
     </div>

@@ -15,6 +15,8 @@ import { useTheme } from '../context/ThemeContext';
 const HISTORY    = 350;
 const TICK_S     = 86400; // 1 day per candle
 const START      = 148.50;
+const CAPITAL    = 10000;   // fixed starting capital AUD
+const MAX_TRADES = 6;       // maximum rounds per session
 const SCRIPT_ID  = 'lw-charts-cdn';
 const SCRIPT_SRC = 'https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js';
 
@@ -541,8 +543,18 @@ export default function TradingGroundsPage() {
   const [indSearch,    setIndSearch]    = useState('');
   const [indOpen,      setIndOpen]      = useState(false);
 
+  // ── Game state ────────────────────────────────────────────────────────────
+  const [playerName,    setPlayerName]    = useState('');
+  const [nameInput,     setNameInput]     = useState('');
+  const [nameModalOpen, setNameModalOpen] = useState(false);
+  const [capital,       setCapital]       = useState(CAPITAL);
+  const [sharesHeld,    setSharesHeld]    = useState(0);
+  const [gameOver,      setGameOver]      = useState(false);
+  const [scoreSubmitted,setScoreSubmitted]= useState(false);
+  const [leaderboard,   setLeaderboard]   = useState([]);
 
   const currentPrice = candles[candles.length - 1]?.close ?? START;
+  const tradesLeft   = MAX_TRADES - trades.length;
 
   // ── Load Lightweight Charts script ────────────────────────────────────────
   useEffect(() => {
@@ -565,6 +577,18 @@ export default function TradingGroundsPage() {
 
   // Keep hLineActiveRef in sync
   useEffect(() => { hLineActiveRef.current = hLineActive; }, [hLineActive]);
+
+  // ── Fetch leaderboard on mount + scroll to chart if hash present ─────────
+  useEffect(() => {
+    fetch('/api/scores/trading-grounds')
+      .then(r => r.json())
+      .then(d => setLeaderboard(d.scores || []))
+      .catch(() => {});
+
+    if (window.location.hash === '#tg-chart') {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, []);
 
   // ── Chart click (fib + darvas box + h-line) ──────────────────────────────
   const handleChartClick = useCallback(({ price, time }) => {
@@ -594,33 +618,171 @@ export default function TradingGroundsPage() {
   const toggle = key => setEnabled(prev => ({ ...prev, [key]: !prev[key] }));
 
   // ── Trading ───────────────────────────────────────────────────────────────
-  const unrealPL   = position ? currentPrice - position.entryPrice : null;
-  const unrealPct  = unrealPL != null ? (unrealPL / position.entryPrice) * 100 : null;
-  const realisedPL = trades.reduce((s, t) => s + t.pl, 0);
-  const winRate    = trades.length ? ((trades.filter(t => t.pl > 0).length / trades.length) * 100).toFixed(0) : null;
+  const unrealPL  = position
+    ? position.direction === 'long'
+      ? sharesHeld * (currentPrice - position.entryPrice)
+      : sharesHeld * (position.entryPrice - currentPrice)
+    : null;
+  const unrealPct = position
+    ? position.direction === 'long'
+      ? ((currentPrice / position.entryPrice) - 1) * 100
+      : ((position.entryPrice / currentPrice) - 1) * 100
+    : null;
+  const totalPL   = capital - CAPITAL;
+  const totalPct  = (totalPL / CAPITAL) * 100;
+  const winRate   = trades.length ? ((trades.filter(t => t.pl > 0).length / trades.length) * 100).toFixed(0) : null;
 
-  const handleBuy = () => {
-    if (position) return;
-    setPosition({ entryPrice: currentPrice, entryTime: new Date().toLocaleTimeString() });
+  const submitScore = async (name, finalCapital) => {
+    const pct = ((finalCapital - CAPITAL) / CAPITAL) * 100;
+    try {
+      await fetch('/api/scores/trading-grounds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, totalProfitPct: pct, totalAmount: finalCapital }),
+      });
+      setScoreSubmitted(true);
+      fetch('/api/scores/trading-grounds')
+        .then(r => r.json())
+        .then(d => setLeaderboard(d.scores || []))
+        .catch(() => {});
+    } catch {}
   };
-  const handleSell = () => {
+
+  const openPosition = (direction) => {
+    if (position || gameOver || tradesLeft <= 0) return;
+    if (!playerName) { setNameModalOpen(true); return; }
+    const shares = capital / currentPrice;
+    setSharesHeld(shares);
+    setPosition({ direction, entryPrice: currentPrice, entryTime: new Date().toLocaleTimeString() });
+  };
+
+  const handleLong  = () => openPosition('long');
+  const handleShort = () => openPosition('short');
+
+  const handleClose = () => {
     if (!position) return;
-    const pl = currentPrice - position.entryPrice;
-    setTrades(prev => [{
-      id: prev.length + 1, entryPrice: position.entryPrice, exitPrice: currentPrice,
-      pl, plPct: (pl / position.entryPrice) * 100,
+    const proceeds = position.direction === 'long'
+      ? sharesHeld * currentPrice
+      : capital + sharesHeld * (position.entryPrice - currentPrice);
+    const pl    = proceeds - capital;
+    const plPct = (pl / capital) * 100;
+    const newTrade = {
+      id: trades.length + 1,
+      direction: position.direction,
+      entryPrice: position.entryPrice, exitPrice: currentPrice,
+      shares: sharesHeld, pl, plPct, capitalAfter: proceeds,
       entryTime: position.entryTime, exitTime: new Date().toLocaleTimeString(),
-    }, ...prev]);
+    };
+    const newTrades = [newTrade, ...trades];
+    setTrades(newTrades);
+    setCapital(proceeds);
+    setSharesHeld(0);
     setPosition(null);
+    if (newTrades.length >= MAX_TRADES) {
+      setGameOver(true);
+      submitScore(playerName, proceeds);
+    }
   };
+
+  const nameTaken = nameInput.trim().length > 0 &&
+    leaderboard.some(s => s.name.toLowerCase() === nameInput.trim().toLowerCase());
+
+  const handleNameSubmit = () => {
+    const n = nameInput.trim();
+    if (!n || nameTaken) return;
+    setPlayerName(n);
+    setNameModalOpen(false);
+    // position is NOT opened here — user clicks BUY after the modal closes
+  };
+
+  const resetGame = () => {
+    setCapital(CAPITAL);
+    setSharesHeld(0);
+    setTrades([]);
+    setPosition(null);
+    setGameOver(false);
+    setScoreSubmitted(false);
+    setPlayerName('');
+    setNameInput('');
+    setCandles(buildSeed(HISTORY));
+  };
+
+  const MEDAL = ['🥇', '🥈', '🥉'];
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="tg-page">
+
+      {/* ── Name modal ──────────────────────────────────────────────────── */}
+      {nameModalOpen && (
+        <div className="tg-modal-overlay">
+          <div className="tg-modal">
+            <button className="tg-modal-close" onClick={() => setNameModalOpen(false)}>✕</button>
+            <div className="tg-modal-title">Enter Your Trader Name</div>
+            <p className="tg-modal-sub">You have <strong>AUD $10,000</strong> and <strong>6 trades</strong> to maximise your capital. Good luck!</p>
+            <input
+              className="tg-modal-input"
+              value={nameInput}
+              onChange={e => setNameInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleNameSubmit()}
+              placeholder="e.g. John Smith"
+              maxLength={32}
+              autoFocus
+              style={nameTaken ? { borderColor: 'var(--danger)' } : {}}
+            />
+            {nameTaken && (
+              <p style={{ margin: 0, fontSize: '.82rem', color: 'var(--danger)' }}>
+                Name already on the leaderboard — choose a different name.
+              </p>
+            )}
+            <button className="tg-btn tg-btn-buy tg-modal-btn" onClick={handleNameSubmit} disabled={!nameInput.trim() || nameTaken}>
+              Start Trading
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Game over overlay ───────────────────────────────────────────── */}
+      {gameOver && (
+        <div className="tg-modal-overlay">
+          <div className="tg-modal">
+            <div className="tg-modal-title">Session Complete!</div>
+            <p className="tg-modal-sub">Well played, <strong>{playerName}</strong>.</p>
+            <div className="tg-gameover-stats">
+              <div className="tg-go-stat">
+                <span className="tg-go-label">Final Capital</span>
+                <span className="tg-go-val" style={{ color: capital >= CAPITAL ? 'var(--success)' : 'var(--danger)' }}>
+                  ${capital.toFixed(2)}
+                </span>
+              </div>
+              <div className="tg-go-stat">
+                <span className="tg-go-label">Total P&amp;L</span>
+                <span className="tg-go-val" style={{ color: totalPL >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+                  {totalPL >= 0 ? '+' : ''}${totalPL.toFixed(2)}
+                </span>
+              </div>
+              <div className="tg-go-stat">
+                <span className="tg-go-label">Return</span>
+                <span className="tg-go-val" style={{ color: totalPct >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+                  {totalPct >= 0 ? '+' : ''}{totalPct.toFixed(2)}%
+                </span>
+              </div>
+            </div>
+            {scoreSubmitted
+              ? <p className="tg-modal-sub" style={{ color: 'var(--success)', marginTop: 8 }}>✓ Score submitted to leaderboard!</p>
+              : <p className="tg-modal-sub" style={{ marginTop: 8 }}>Submitting score…</p>
+            }
+            <button className="tg-btn tg-btn-buy tg-modal-btn" style={{ marginTop: 16 }} onClick={resetGame}>
+              Play Again
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="tg-header page-hero">
         <div className="section-eyebrow">Trading Simulation</div>
         <h1 className="tg-hero-title">Trading Grounds</h1>
-        <p className="tg-hero-sub">Live candlestick simulator — practice BUY &amp; SELL with no real money.</p>
+        <p className="tg-hero-sub">Live candlestick simulator — AUD $10,000 capital · 6 rounds · climb the leaderboard.</p>
       </div>
 
       <div className="tg-body">
@@ -821,7 +983,7 @@ export default function TradingGroundsPage() {
         </div>
 
         {/* ── Chart + Panel layout ───────────────────────────────────────── */}
-        <div className="tg-layout">
+        <div id="tg-chart" className="tg-layout">
 
           <div className="tg-chart-col">
             {!lwReady ? (
@@ -848,35 +1010,61 @@ export default function TradingGroundsPage() {
           {/* Right: trading panel */}
           <div className="tg-panel">
 
+            {playerName && (
+              <div className="tg-trader-name">
+                <span className="tg-trader-avatar">{playerName.charAt(0).toUpperCase()}</span>
+                <div className="tg-trader-info">
+                  <span className="tg-trader-label">Trader</span>
+                  <span className="tg-trader-val">{playerName}</span>
+                </div>
+              </div>
+            )}
+
             <div className="tg-panel-price">
               <div className="tg-panel-ticker">
-                <span className="tg-ticker">SMM / SIM</span>
+                <span className="tg-ticker">Price</span>
                 <span className="tg-live-badge"><span className="tg-live-dot" />LIVE</span>
               </div>
               <div className="tg-panel-big">${currentPrice.toFixed(2)}</div>
             </div>
 
-            <div className="tg-panel-stats">
-              <div className="tg-ps">
-                <div className="tg-ps-label">Total Gains</div>
-                <div className="tg-ps-val" style={{ color: realisedPL === 0 ? 'var(--muted)' : realisedPL > 0 ? 'var(--success)' : 'var(--danger)' }}>
-                  {trades.length === 0 ? '—' : `${realisedPL >= 0 ? '+' : ''}$${realisedPL.toFixed(2)}`}
-                </div>
+            {/* Capital + trades counter */}
+            <div className="tg-capital-bar">
+              <div className="tg-cap-item">
+                <span className="tg-ps-label">Capital</span>
+                <span className="tg-ps-val" style={{ color: capital >= CAPITAL ? 'var(--success)' : 'var(--danger)' }}>
+                  ${capital.toFixed(2)}
+                </span>
               </div>
-              <div className="tg-ps">
-                <div className="tg-ps-label">Trades</div>
-                <div className="tg-ps-val">{trades.length || '—'}</div>
+              <div className="tg-cap-item">
+                <span className="tg-ps-label">Total P&amp;L</span>
+                <span className="tg-ps-val" style={{ color: totalPL === 0 ? 'var(--muted)' : totalPL > 0 ? 'var(--success)' : 'var(--danger)' }}>
+                  {trades.length === 0 ? '—' : `${totalPL >= 0 ? '+' : ''}$${totalPL.toFixed(2)}`}
+                </span>
               </div>
-              <div className="tg-ps">
-                <div className="tg-ps-label">Win Rate</div>
-                <div className="tg-ps-val" style={{ color: winRate === null ? 'var(--muted)' : winRate >= 50 ? 'var(--success)' : 'var(--danger)' }}>
+              <div className="tg-cap-item">
+                <span className="tg-ps-label">Rounds Left</span>
+                <span className="tg-ps-val" style={{ color: tradesLeft <= 3 ? 'var(--danger)' : 'var(--text)' }}>
+                  {tradesLeft} / {MAX_TRADES}
+                </span>
+              </div>
+              <div className="tg-cap-item">
+                <span className="tg-ps-label">Win Rate</span>
+                <span className="tg-ps-val" style={{ color: winRate === null ? 'var(--muted)' : winRate >= 50 ? 'var(--success)' : 'var(--danger)' }}>
                   {winRate !== null ? `${winRate}%` : '—'}
-                </div>
+                </span>
               </div>
             </div>
 
             <div className="tg-panel-section">
-              <div className="tg-panel-section-title">Position</div>
+              <div className="tg-panel-section-title">
+                Position
+                {position && (
+                  <span className={`tg-dir-badge ${position.direction}`}>
+                    {position.direction === 'long' ? '▲ LONG' : '▼ SHORT'}
+                  </span>
+                )}
+              </div>
               {position ? (
                 <div className="tg-pos-grid">
                   <div><div className="tg-ps-label">Entry</div><div className="tg-ps-val">${position.entryPrice.toFixed(2)}</div></div>
@@ -895,18 +1083,23 @@ export default function TradingGroundsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="tg-no-pos">No open position</div>
+                <div className="tg-no-pos">
+                  {playerName
+                    ? tradesLeft > 0 ? 'No open position — go LONG or SHORT' : 'All rounds used'
+                    : 'Press LONG or SHORT to start — you will be asked for your name'}
+                </div>
               )}
             </div>
 
             <div className="tg-panel-btns">
-              <button className="tg-btn tg-btn-buy"  onClick={handleBuy}  disabled={!!position}>▲ BUY</button>
-              <button className="tg-btn tg-btn-sell" onClick={handleSell} disabled={!position}>▼ SELL</button>
+              <button className="tg-btn tg-btn-buy"  onClick={handleLong}  disabled={!!position || tradesLeft <= 0 || gameOver}>▲ LONG</button>
+              <button className="tg-btn tg-btn-sell" onClick={handleShort} disabled={!!position || tradesLeft <= 0 || gameOver}>▼ SHORT</button>
+              <button className="tg-btn tg-btn-close" onClick={handleClose} disabled={!position || gameOver}>✕ CLOSE</button>
             </div>
 
             <div className="tg-panel-section tg-history">
               <div className="tg-panel-section-title">
-                Trade History {trades.length > 0 && <span className="tg-log-count">{trades.length}</span>}
+                Trade History {trades.length > 0 && <span className="tg-log-count">{trades.length}/{MAX_TRADES}</span>}
               </div>
               {trades.length === 0 ? (
                 <div className="tg-no-pos">No trades yet</div>
@@ -916,6 +1109,9 @@ export default function TradingGroundsPage() {
                     <div key={t.id} className={`tg-history-row ${t.pl >= 0 ? 'win' : 'loss'}`}>
                       <div className="tg-history-meta">
                         <span className="tg-history-id">#{t.id}</span>
+                        <span className={`tg-dir-badge ${t.direction}`} style={{ fontSize: '.68rem', padding: '1px 5px' }}>
+                          {t.direction === 'long' ? '▲ L' : '▼ S'}
+                        </span>
                         <span className="tg-td-muted" style={{ fontSize: '.72rem' }}>{t.entryTime} → {t.exitTime}</span>
                       </div>
                       <div className="tg-history-prices">
@@ -931,6 +1127,9 @@ export default function TradingGroundsPage() {
                           {t.plPct >= 0 ? '+' : ''}{t.plPct.toFixed(2)}%
                         </span>
                       </div>
+                      <div style={{ fontSize: '.72rem', color: 'var(--muted)', marginTop: 1 }}>
+                        Capital after: ${t.capitalAfter.toFixed(2)}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -939,6 +1138,46 @@ export default function TradingGroundsPage() {
 
           </div>
         </div>
+
+        {/* ── Leaderboard ───────────────────────────────────────────────── */}
+        <div className="tg-leaderboard">
+          <div className="tg-lb-header">
+            <div className="tg-lb-title-row">
+              <span className="tg-lb-trophy">🏆</span>
+              <div>
+                <div className="tg-lb-title">Leaderboard</div>
+                <div className="tg-lb-sub">Top {leaderboard.length} Trader{leaderboard.length !== 1 ? 's' : ''}</div>
+              </div>
+            </div>
+          </div>
+          {leaderboard.length === 0 ? (
+            <div className="tg-no-pos" style={{ padding: '1.5rem' }}>No scores yet — be the first!</div>
+          ) : (
+            <div className="tg-lb-table">
+              <div className="tg-lb-thead">
+                <span>Rank</span><span>Trader</span><span>Final Capital</span><span>Return</span><span>Date</span>
+              </div>
+              {leaderboard.map((s, i) => (
+                <div
+                  key={i}
+                  className={`tg-lb-row${i === 0 ? ' tg-lb-gold' : i === 1 ? ' tg-lb-silver' : i === 2 ? ' tg-lb-bronze' : ''}`}
+                >
+                  <span className="tg-lb-rank">{i < 3 ? MEDAL[i] : `#${i + 1}`}</span>
+                  <span className="tg-lb-name">
+                    <span className={`tg-lb-avatar rank-${i}`}>{s.name.charAt(0).toUpperCase()}</span>
+                    {s.name}
+                  </span>
+                  <span className="tg-lb-amount">${s.totalAmount.toFixed(2)}</span>
+                  <span className={`tg-lb-pct ${s.totalProfitPct >= 0 ? 'tg-win' : 'tg-loss'}`}>
+                    {s.totalProfitPct >= 0 ? '+' : ''}{s.totalProfitPct.toFixed(2)}%
+                  </span>
+                  <span className="tg-lb-date">{new Date(s.playedAt).toLocaleDateString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

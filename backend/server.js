@@ -18,6 +18,7 @@ import { connectDB } from './db.js';
 import authRoutes    from './routes/auth.js';
 import statsRoutes   from './routes/stats.js';
 import asxRoutes     from './routes/asx.js';
+import scoresRoutes  from './routes/scores.js';
 
 const app  = express();
 const PORT = 5000;
@@ -25,9 +26,10 @@ const PORT = 5000;
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 
-app.use('/api/auth',  authRoutes);
-app.use('/api/stats', statsRoutes);
-app.use('/api/asx',   asxRoutes);
+app.use('/api/auth',   authRoutes);
+app.use('/api/stats',  statsRoutes);
+app.use('/api/asx',    asxRoutes);
+app.use('/api/scores', scoresRoutes);
 
 // Connect to MongoDB Atlas then start listening
 connectDB()
