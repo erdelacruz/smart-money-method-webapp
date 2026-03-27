@@ -10,6 +10,11 @@ ins.adsbygoogle[data-ad-status="unfilled"] {
 ins.adsbygoogle[data-ad-status="unfilled"] + * {
   margin-top: 0 !important;
 }
+/* Hide wrapper cards/sections when their ad is unfilled */
+.blog-sidebar-ad-card:has(ins.adsbygoogle[data-ad-status="unfilled"]),
+.blog-post-sidebar:has(ins.adsbygoogle[data-ad-status="unfilled"]) {
+  display: none !important;
+}
 
 :root {
   --bg:         #0B1219;
