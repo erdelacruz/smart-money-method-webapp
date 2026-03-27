@@ -193,7 +193,8 @@ export default function BlogEditorPage() {
 
   const save = async (publishNow) => {
     if (!title.trim()) { setError('Title is required.'); return; }
-    if (!content.trim() || content === '<br>') { setError('Content is required.'); return; }
+    const plainText = content.replace(/<[^>]*>/g, '').trim();
+    if (!plainText) { setError('Content is required.'); return; }
 
     setSaving(true);
     setError('');
@@ -216,7 +217,11 @@ export default function BlogEditorPage() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error((await res.json()).error || 'Save failed');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401) throw new Error('Session expired — please log out and log back in.');
+        throw new Error(data.error || data.message || 'Save failed');
+      }
       navigate('/admin?tab=content');
     } catch (err) {
       setError(err.message);

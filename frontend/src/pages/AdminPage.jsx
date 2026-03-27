@@ -185,8 +185,9 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'stats');
 
   // Blog state
-  const [blogPosts,   setBlogPosts]   = useState([]);
-  const [blogLoading, setBlogLoading] = useState(false);
+  const [blogPosts,     setBlogPosts]     = useState([]);
+  const [blogLoading,   setBlogLoading]   = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // { id, title }
 
   // stats: the visitor data object returned by the backend, or null before first fetch
   const [stats,   setStats]   = useState(null);
@@ -252,12 +253,17 @@ export default function AdminPage() {
   }, [activeTab, token]);
 
   const deletePost = async (id, title) => {
-    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
-    await fetch(`/api/blog/${id}`, {
+    setConfirmDelete({ id, title });
+  };
+
+  const confirmDeletePost = async () => {
+    if (!confirmDelete) return;
+    await fetch(`/api/blog/${confirmDelete.id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });
-    setBlogPosts(posts => posts.filter(p => p._id !== id));
+    setBlogPosts(posts => posts.filter(p => p._id !== confirmDelete.id));
+    setConfirmDelete(null);
   };
 
   // ---------------------------------------------------------------------------
@@ -491,6 +497,48 @@ export default function AdminPage() {
         </>
       )}
       </div>
+
+      {/* ── Delete Confirmation Modal ── */}
+      {confirmDelete && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            background: 'var(--surface)', border: '1px solid var(--border)',
+            borderRadius: 16, padding: '32px 28px', maxWidth: 420, width: '90%',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.3)',
+            display: 'flex', flexDirection: 'column', gap: 12,
+          }}>
+            <div style={{ fontSize: 36, textAlign: 'center' }}>⚠️</div>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text)', textAlign: 'center' }}>
+              Delete Post?
+            </h3>
+            <p style={{ margin: 0, fontSize: '.9rem', color: 'var(--text2)', textAlign: 'center', lineHeight: 1.6 }}>
+              You are about to permanently delete<br />
+              <strong style={{ color: 'var(--text)' }}>"{confirmDelete.title}"</strong>.<br />
+              This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+              <button onClick={() => setConfirmDelete(null)} style={{
+                flex: 1, padding: '10px 0', borderRadius: 8, border: '1px solid var(--border)',
+                background: 'var(--bg)', color: 'var(--text)', fontWeight: 600,
+                fontSize: '.9rem', cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                Cancel
+              </button>
+              <button onClick={confirmDeletePost} style={{
+                flex: 1, padding: '10px 0', borderRadius: 8, border: 'none',
+                background: '#E53E3E', color: '#fff', fontWeight: 700,
+                fontSize: '.9rem', cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

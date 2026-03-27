@@ -5528,7 +5528,7 @@ body::before {
 .rte-wrap {
   border: 1px solid var(--border);
   border-radius: 10px;
-  overflow: hidden;
+  overflow: visible;
   background: var(--surface);
 }
 
@@ -5540,6 +5540,9 @@ body::before {
   padding: 8px 10px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
+  position: sticky;
+  top: 64px; /* below navbar (navbar height = 64px) */
+  z-index: 10;
 }
 
 .rte-btn {
@@ -5576,6 +5579,8 @@ body::before {
   font-size: .95rem;
   line-height: 1.75;
   color: var(--text);
+  overflow-x: hidden;
+  max-width: 100%;
 }
 .rte-editor:focus { outline: none; }
 
@@ -5596,14 +5601,20 @@ body::before {
 }
 .rte-editor a { color: var(--primary); text-decoration: underline; }
 .rte-editor hr { border: none; border-top: 1px solid var(--border); margin: 1.2em 0; }
+.rte-editor img,
+.rte-editor iframe,
+.rte-editor video,
+.rte-editor embed { max-width: 100%; width: 100%; display: block; box-sizing: border-box; }
 
 /* ============================================================
    BLOG EDITOR PAGE
    ============================================================ */
 .blog-editor-page {
-  max-width: 1200px;
+  max-width: 1300px;
+  width: 100%;
   margin: 0 auto;
   padding: 32px 24px 64px;
+  box-sizing: border-box;
 }
 
 .blog-editor-header {
@@ -5638,12 +5649,12 @@ body::before {
 
 .blog-editor-body {
   display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
   align-items: start;
 }
 
-.blog-editor-main { display: flex; flex-direction: column; gap: 20px; }
+.blog-editor-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 
 .blog-field { display: flex; flex-direction: column; gap: 6px; }
 .blog-field-label { font-size: .82rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
