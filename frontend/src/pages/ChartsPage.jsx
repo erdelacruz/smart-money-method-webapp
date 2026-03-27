@@ -23,8 +23,8 @@ const SMA_STUDIES = [
 
 // Sub-chart indicators
 const CHART_INDICATORS = [
-  { key: 'rsi',  label: 'RSI (14)',        group: 'Sub-Charts', dot: '#00C896', tvId: 'RSI@tv-basicstudies'  },
-  { key: 'macd', label: 'MACD (12,26,9)', group: 'Sub-Charts', dot: '#5B9CF6', tvId: 'MACD@tv-basicstudies' },
+  { key: 'rsi',  label: 'RSI',  group: 'Sub-Charts', dot: '#00C896', tvId: 'RSI@tv-basicstudies'  },
+  { key: 'macd', label: 'MACD', group: 'Sub-Charts', dot: '#5B9CF6', tvId: 'MACD@tv-basicstudies' },
 ];
 
 
@@ -188,8 +188,8 @@ function PriceChartTab() {
           {/* Sub-Charts */}
           <div className="tg-toolbar-group">
             {[
-              { key: 'rsi',  label: 'RSI (14)',       dot: '#00C896' },
-              { key: 'macd', label: 'MACD (12,26,9)', dot: '#5B9CF6' },
+              { key: 'rsi',  label: 'RSI',  dot: '#00C896' },
+              { key: 'macd', label: 'MACD', dot: '#5B9CF6' },
             ].map(({ key, label, dot }) => (
               <button key={key} className={`tg-ind-btn${enabled[key] ? ' active' : ''}`}
                 style={enabled[key] ? { borderColor: dot, color: dot } : {}} onClick={() => toggle(key)}>
