@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import AdBanner from '../components/AdBanner';
 
 // ---------------------------------------------------------------------------
 // Persist a visitor UUID in localStorage for backend tracking
@@ -428,6 +429,8 @@ export default function PublicPage() {
         </div>
       </section>
 
+      {/* ── AD: between hero and tools ── */}
+      <AdBanner adSlot="4511626738" adFormat="auto" style={{ padding: '12px 0' }} />
 
       {/* ── TOOLS + LEADERBOARD side-by-side ────────────────────── */}
       <section className="tools-section tools-lb-wrap">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import AdBanner from '../components/AdBanner';
 
 export default function BlogPostPage() {
   const { slug }  = useParams();
@@ -76,27 +77,39 @@ export default function BlogPostPage() {
       </div>
 
       <div className="blog-post-wrap">
-        <div className="blog-post-card">
-          {post.featuredImage && (
-            <div className="blog-post-featured-img">
-              <img src={post.featuredImage} alt={post.title} />
-            </div>
-          )}
+        <div className="blog-post-layout">
 
-          <div className="blog-post-body">
-            <div
-              className="blog-post-content"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
-
-            {post.tags?.length > 0 && (
-              <div className="blog-post-tags">
-                {post.tags.map(t => <span key={t} className="blog-tag">{t}</span>)}
+          {/* ── Main content ── */}
+          <div className="blog-post-card">
+            {post.featuredImage && (
+              <div className="blog-post-featured-img">
+                <img src={post.featuredImage} alt={post.title} />
               </div>
             )}
 
-            <Link to={backHref} className="blog-back-link">← Back to Learn</Link>
+            <div className="blog-post-body">
+              <div
+                className="blog-post-content"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+
+              {post.tags?.length > 0 && (
+                <div className="blog-post-tags">
+                  {post.tags.map(t => <span key={t} className="blog-tag">{t}</span>)}
+                </div>
+              )}
+
+              <Link to={backHref} className="blog-back-link">← Back to Learn</Link>
+            </div>
           </div>
+
+          {/* ── Sidebar ── */}
+          <aside className="blog-post-sidebar">
+            <div className="blog-sidebar-ad-card">
+              <AdBanner adSlot="7448781261" adFormat="auto" />
+            </div>
+          </aside>
+
         </div>
       </div>
     </article>
