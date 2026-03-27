@@ -93,7 +93,7 @@ export default function BlogPostPage() {
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
 
-              <AdBanner adSlot="4503887875" adFormat="auto" style={{ margin: '24px 0' }} />
+              <AdBanner adSlot="4503887875" adFormat="auto" />
 
               {post.tags?.length > 0 && (
                 <div className="blog-post-tags">

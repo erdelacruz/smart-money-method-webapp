@@ -26,11 +26,11 @@ export default function AdBanner({ adSlot, adFormat = 'auto', style = {} }) {
   }, []);
 
   return (
-    <div style={{ textAlign: 'center', overflow: 'hidden', ...style }}>
+    <div style={{ textAlign: 'center', overflow: 'hidden', minHeight: 0, ...style }}>
       <ins
         ref={adRef}
         className="adsbygoogle"
-        style={{ display: 'block' }}
+        style={{ display: 'block', minHeight: 0 }}
         data-ad-client="ca-pub-6438914517960882"
         data-ad-slot={adSlot}
         data-ad-format={adFormat}

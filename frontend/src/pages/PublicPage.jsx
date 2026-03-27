@@ -430,7 +430,7 @@ export default function PublicPage() {
       </section>
 
       {/* ── AD: between hero and tools ── */}
-      <AdBanner adSlot="4511626738" adFormat="auto" style={{ padding: '12px 0' }} />
+      <AdBanner adSlot="4511626738" adFormat="auto" />
 
       {/* ── TOOLS + LEADERBOARD side-by-side ────────────────────── */}
       <section className="tools-section tools-lb-wrap">
