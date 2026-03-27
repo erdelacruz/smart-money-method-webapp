@@ -29,9 +29,9 @@ export default function Footer() {
       <div className="footer-bottom">
         <span>© 2026 Smart Money Method Australia. All rights reserved.</span>
         <div className="footer-legal">
-          <a href="#" className="footer-link">Privacy Policy</a>
-          <a href="#" className="footer-link">Terms of Service</a>
-          <a href="#" className="footer-link">Disclaimer</a>
+          <a href="#privacy-policy" className="footer-link" aria-label="Privacy Policy (coming soon)">Privacy Policy</a>
+          <a href="#terms-of-service" className="footer-link" aria-label="Terms of Service (coming soon)">Terms of Service</a>
+          <a href="#disclaimer" className="footer-link" aria-label="Disclaimer (coming soon)">Disclaimer</a>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <span>Data provided for informational purposes only.</span>

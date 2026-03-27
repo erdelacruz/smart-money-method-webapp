@@ -795,7 +795,7 @@ export default function TradingGroundsPage() {
       {nameModalOpen && (
         <div className="tg-modal-overlay">
           <div className="tg-modal">
-            <button className="tg-modal-close" onClick={() => setNameModalOpen(false)}>✕</button>
+            <button className="tg-modal-close" onClick={() => setNameModalOpen(false)} aria-label="Close modal">✕</button>
             <div className="tg-modal-title">Enter Your Trader Name</div>
             <p className="tg-modal-sub">You have <strong>AUD $10,000</strong> and <strong>6 trades</strong> to maximise your capital. Good luck!</p>
             <input
@@ -1083,6 +1083,43 @@ export default function TradingGroundsPage() {
                 lwReady={lwReady}
               />
             )}
+
+            {/* ── Leaderboard — under the chart ── */}
+            <div className="tg-leaderboard">
+              <div className="tg-lb-header">
+                <div className="tg-lb-title-row">
+                  <span className="tg-lb-trophy">🏆</span>
+                  <span className="tg-lb-title">Leaderboard</span>
+                  <span className="tg-lb-sub">Top {leaderboard.length} Trader{leaderboard.length !== 1 ? 's' : ''}</span>
+                </div>
+              </div>
+              {leaderboard.length === 0 ? (
+                <div className="tg-no-pos" style={{ padding: '1.5rem' }}>No scores yet — be the first!</div>
+              ) : (
+                <div className="tg-lb-table">
+                  <div className="tg-lb-thead">
+                    <span>Rank</span><span>Trader</span><span>Final Capital</span><span>Return</span><span>Date</span>
+                  </div>
+                  {leaderboard.map((s, i) => (
+                    <div
+                      key={i}
+                      className={`tg-lb-row${i === 0 ? ' tg-lb-gold' : i === 1 ? ' tg-lb-silver' : i === 2 ? ' tg-lb-bronze' : ''}`}
+                    >
+                      <span className="tg-lb-rank">{i < 3 ? MEDAL[i] : `#${i + 1}`}</span>
+                      <span className="tg-lb-name">
+                        <span className={`tg-lb-avatar rank-${i}`}>{s.name.charAt(0).toUpperCase()}</span>
+                        {s.name}
+                      </span>
+                      <span className="tg-lb-amount">${s.totalAmount.toFixed(2)}</span>
+                      <span className={`tg-lb-pct ${s.totalProfitPct >= 0 ? 'tg-win' : 'tg-loss'}`}>
+                        {s.totalProfitPct >= 0 ? '+' : ''}{s.totalProfitPct.toFixed(2)}%
+                      </span>
+                      <span className="tg-lb-date">{new Date(s.playedAt).toLocaleDateString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right: trading panel */}
@@ -1134,6 +1171,12 @@ export default function TradingGroundsPage() {
               </div>
             </div>
 
+            <div className="tg-panel-btns">
+              <button className="tg-btn tg-btn-buy"  onClick={handleLong}  disabled={!!position || tradesLeft <= 0 || gameOver}>▲ LONG</button>
+              <button className="tg-btn tg-btn-sell" onClick={handleShort} disabled={!!position || tradesLeft <= 0 || gameOver}>▼ SHORT</button>
+              <button className="tg-btn tg-btn-close" onClick={handleClose} disabled={!position || gameOver}>✕ CLOSE</button>
+            </div>
+
             <div className="tg-panel-section">
               <div className="tg-panel-section-title">
                 Position
@@ -1167,12 +1210,6 @@ export default function TradingGroundsPage() {
                     : 'Press LONG or SHORT to start — you will be asked for your name'}
                 </div>
               )}
-            </div>
-
-            <div className="tg-panel-btns">
-              <button className="tg-btn tg-btn-buy"  onClick={handleLong}  disabled={!!position || tradesLeft <= 0 || gameOver}>▲ LONG</button>
-              <button className="tg-btn tg-btn-sell" onClick={handleShort} disabled={!!position || tradesLeft <= 0 || gameOver}>▼ SHORT</button>
-              <button className="tg-btn tg-btn-close" onClick={handleClose} disabled={!position || gameOver}>✕ CLOSE</button>
             </div>
 
             <div className="tg-panel-section tg-history">
@@ -1217,44 +1254,6 @@ export default function TradingGroundsPage() {
           </div>
         </div>
 
-        {/* ── Leaderboard ───────────────────────────────────────────────── */}
-        <div className="tg-leaderboard">
-          <div className="tg-lb-header">
-            <div className="tg-lb-title-row">
-              <span className="tg-lb-trophy">🏆</span>
-              <div>
-                <div className="tg-lb-title">Leaderboard</div>
-                <div className="tg-lb-sub">Top {leaderboard.length} Trader{leaderboard.length !== 1 ? 's' : ''}</div>
-              </div>
-            </div>
-          </div>
-          {leaderboard.length === 0 ? (
-            <div className="tg-no-pos" style={{ padding: '1.5rem' }}>No scores yet — be the first!</div>
-          ) : (
-            <div className="tg-lb-table">
-              <div className="tg-lb-thead">
-                <span>Rank</span><span>Trader</span><span>Final Capital</span><span>Return</span><span>Date</span>
-              </div>
-              {leaderboard.map((s, i) => (
-                <div
-                  key={i}
-                  className={`tg-lb-row${i === 0 ? ' tg-lb-gold' : i === 1 ? ' tg-lb-silver' : i === 2 ? ' tg-lb-bronze' : ''}`}
-                >
-                  <span className="tg-lb-rank">{i < 3 ? MEDAL[i] : `#${i + 1}`}</span>
-                  <span className="tg-lb-name">
-                    <span className={`tg-lb-avatar rank-${i}`}>{s.name.charAt(0).toUpperCase()}</span>
-                    {s.name}
-                  </span>
-                  <span className="tg-lb-amount">${s.totalAmount.toFixed(2)}</span>
-                  <span className={`tg-lb-pct ${s.totalProfitPct >= 0 ? 'tg-win' : 'tg-loss'}`}>
-                    {s.totalProfitPct >= 0 ? '+' : ''}{s.totalProfitPct.toFixed(2)}%
-                  </span>
-                  <span className="tg-lb-date">{new Date(s.playedAt).toLocaleDateString()}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
       </div>
     </div>

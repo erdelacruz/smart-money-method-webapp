@@ -346,13 +346,14 @@ export default function AdminPage() {
                         {new Date(post.createdAt).toLocaleDateString('en-AU')}
                       </td>
                       <td className="blog-table-actions">
-                        <Link to={`/admin/blog/edit/${post._id}`} className="blog-action-btn">Edit</Link>
+                        <Link to={`/admin/blog/edit/${post._id}`} className="blog-action-btn" aria-label={`Edit "${post.title}"`}>Edit</Link>
                         {post.published && (
-                          <Link to={`/learn/${post.slug}`} target="_blank" className="blog-action-btn">View</Link>
+                          <Link to={`/learn/${post.slug}`} target="_blank" className="blog-action-btn" aria-label={`View "${post.title}"`}>View</Link>
                         )}
                         <button
                           className="blog-action-btn danger"
                           onClick={() => deletePost(post._id, post.title)}
+                          aria-label={`Delete "${post.title}"`}
                         >
                           Delete
                         </button>

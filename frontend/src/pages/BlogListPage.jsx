@@ -106,7 +106,7 @@ export default function BlogListPage({ type = 'Blog' }) {
 
           <div className="blog-grid">
             {posts.map(post => (
-              <Link key={post._id} to={`/learn/${post.slug}`} className="blog-card">
+              <Link key={post._id} to={`/learn/${post.slug}`} className="blog-card" aria-label={`Read: ${post.title}`}>
                 {post.featuredImage && (
                   <div className="blog-card-img-wrap">
                     <img src={post.featuredImage} alt={post.title} className="blog-card-img" loading="lazy" decoding="async" />

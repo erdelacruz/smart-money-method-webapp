@@ -392,9 +392,9 @@ export default function PublicPage() {
 
             {/* Slide dots */}
             <div className="hero-slide-dots">
-              <button className={heroSlide === 0 ? 'active' : ''} onClick={() => setHeroSlide(0)} />
-              <button className={heroSlide === 1 ? 'active' : ''} onClick={() => setHeroSlide(1)} />
-              <button className={heroSlide === 2 ? 'active' : ''} onClick={() => setHeroSlide(2)} />
+              <button className={heroSlide === 0 ? 'active' : ''} onClick={() => setHeroSlide(0)} aria-label="View savings growth slide" />
+              <button className={heroSlide === 1 ? 'active' : ''} onClick={() => setHeroSlide(1)} aria-label="View trading chart slide" />
+              <button className={heroSlide === 2 ? 'active' : ''} onClick={() => setHeroSlide(2)} aria-label="View DCA calculator slide" />
             </div>
 
             {/* Floating badge — bottom left (context-aware) */}
@@ -457,7 +457,7 @@ export default function PublicPage() {
                   </div>
                   <div className="tool-title">{tool.title}</div>
                   <div className="tool-desc">{tool.desc}</div>
-                  <Link to={tool.href} className="tool-btn">Open Tool →</Link>
+                  <Link to={tool.href} className="tool-btn" aria-label={`Open ${tool.title}`}>Open Tool →</Link>
                 </div>
               ))}
             </div>
